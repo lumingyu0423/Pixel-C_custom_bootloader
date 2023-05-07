@@ -1,0 +1,368 @@
+coreboot-a925efa bootblock Wed Oct  7 10:26:42 PDT 2015 starting...
+T210: Bootblock here
+PMC Reset Status: POR
+init_utmip_pll: UTMIPLL_HW_PWRDN_CFG0:0x8600000d
+init_utmip_pll: UTMIP_PLL_CFG0:0x00190101
+init_utmip_pll: UTMIP_PLL_CFG1:0x00018080
+init_utmip_pll: UTMIP_PLL_CFG2:0x0218002a
+T210 bootblock: Clock init done
+PMIC init done
+Cold boot: Setting bootreason to reboot
+SF: Detected W25Q128FW with page size 1000, total 1000000
+FMAP: Found "FMAP" version 1.0 at 40002000.
+FMAP: base = 0 size = 1000000 #areas = 23
+FMAP: area GBB found
+FMAP:   offset: 301000
+FMAP:   size:   978688 bytes
+FMAP: GBB at 00301000 (offset 301000)
+gbb_addr: 301000
+Root key found! HASH COMPARE SUCCESSFUL!
+T210 bootblock: Mainboard bootblock init done
+FMAP: area RW_NVRAM found
+FMAP:   offset: f20000
+FMAP:   size:   65536 bytes
+FMAP: RW_NVRAM at 00f20000 (offset f20000)
+tis_init: ValidSts bit set(1) in TPM_ACCESS register after 0 ms
+1.2 TPM (chip type slb9645tt device-id 0x1A)
+TPM: Startup
+TPM: command 0x99 returned 0x0
+TPM: Asserting physical presence
+TPM: command 0x4000000a returned 0x0
+TPM: command 0x65 returned 0x0
+TPM: flags disable=0, deactivated=0, nvlocked=1
+setup_tpm():312: TPM: SetupTPM() succeeded
+TPM: tlcl_read(0x1007, 10)
+TPM: command 0xcf returned 0x0
+out: cmd=0x87: 03 48 87 00 00 00 04 00 68 81 01 40
+in-header: 03 b9 00 00 04 00 00 00
+in-data: 00 20 20 00
+Phase 1
+FMAP: area GBB found
+FMAP:   offset: 301000
+FMAP:   size:   978688 bytes
+FMAP: GBB at 00301000 (offset 301000)
+VB2:vb2_check_recovery() We have a recovery request: 0x3 / 0x3
+Recovery requested (1009000e)
+Saving nvdata
+SF: Detected W25Q128FW with page size 1000, total 1000000
+TPM: command 0x14 returned 0x0
+TPM: command 0x14 returned 0x0
+CBFS: loading stage from 0x239078 @ 0x40027000 (65304 bytes), entry @ 0x40027000
+
+
+coreboot-4.0 romstage Wed May  3 19:34:11 CST 2023 starting...
+T210: romstage here
+get_sdram_config: RAMCODE=2
+Initializing SDRAM of type 3 with 1305600KHz
+T210 romstage: sdram_init done
+CBMEM: root @ f67ff000 254 entries.
+Ungating power partition 0.
+Power gate toggle request accepted.
+Partition 0 Ungated.
+Ungating power partition 15.
+Partition 15 already Ungated.
+Ungating power partition 14.
+Power gate toggle request accepted.
+Partition 14 Ungated.
+Requesting RAM repair.
+RAM repair complete in 20 usecs.
+T210 romstage: cpu prepare done
+out: cmd=0x2: 03 fb 02 00 00 00 00 00
+in-header: 03 41 00 00 64 00 00 00
+in-data: 72 79 75 5f 76 31 2e 38 2e 32 30 35 2d 66 37 32 33 39 30 61 00 00 00 00 00 00 00 00 00 00 00 00 72 79 75 5f 76 31 2e 38 2e 32 35 35 2d 39 65 38 38 37 63 62 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00
+out: cmd=0x87: 03 72 87 00 00 00 04 00 00 00 00 00
+in-header: 03 b9 00 00 04 00 00 00
+in-data: 00 20 20 00
+SF: Detected W25Q128FW with page size 1000, total 1000000
+FMAP: Found "FMAP" version 1.0 at 80100000.
+FMAP: base = 0 size = 1000000 #areas = 23
+FMAP: area RW_NVRAM found
+FMAP:   offset: f20000
+FMAP:   size:   65536 bytes
+FMAP: RW_NVRAM at 00f20000 (offset f20000)
+creating vboot_handoff structure
+CBFS: loading stage from 0x244ef8 @ 0x80200000 (205568 bytes), entry @ 0x80200000
+Ramstage load time: 205920 usecs.
+Starting CPU0 @ 80200000.
+
+
+coreboot-4.0 Wed May  3 19:34:11 CST 2023 booting...
+ARM64: Exception handlers installed.
+ARM64: Testing exception
+ARM64: Done test exception
+CBMEM: recovering 4/254 entries from root @ 00000000f67ff000
+SF: Detected W25Q128FW with page size 1000, total 1000000
+FMAP: Found "FMAP" version 1.0 at 0000000080100000.
+FMAP: base = 0 size = 1000000 #areas = 23
+FMAP: area RO_VPD found
+FMAP:   offset: 3f0000
+FMAP:   size:   65536 bytes
+FMAP: area RW_VPD found
+FMAP:   offset: f0c000
+FMAP:   size:   32768 bytes
+cbmem_add_cros_vpd: RO (0x3f0610+0x19), RW (0xf0c600+0x7a00).
+BS: BS_PRE_DEVICE times (us): entry 49169 run 0 exit 1
+chip 21 rev 01.2
+get_sdram_config: RAMCODE=2
+sdram params saved.
+BS: BS_DEV_INIT_CHIPS times (us): entry 1 run 6014 exit 1
+Enumerating buses...
+Show all devs...Before device enumeration.
+Root Device: enabled 1
+CPU_CLUSTER: 0: enabled 1
+CPU: 00: enabled 1
+Compare with tree...
+Root Device: enabled 1
+ CPU_CLUSTER: 0: enabled 1
+  CPU: 00: enabled 1
+scan_static_bus for Root Device
+CPU_CLUSTER: 0 enabled
+scan_static_bus for Root Device done
+done
+BS: BS_DEV_ENUMERATE times (us): entry 0 run 29002 exit 0
+Allocating resources...
+Reading resources...
+Root Device read_resources bus 0 link: 0
+CPU_CLUSTER: 0 read_resources bus 0 link: 0
+CPU: 00 missing read_resources
+CPU_CLUSTER: 0 read_resources bus 0 link: 0 done
+Root Device read_resources bus 0 link: 0 done
+Done reading resources.
+Show resources in subtree (Root Device)...After reading.
+ Root Device child on link 0 CPU_CLUSTER: 0
+  CPU_CLUSTER: 0 child on link 0 CPU: 00
+  CPU_CLUSTER: 0 resource base fec00000 size 1400000 align 0 gran 0 limit 0 flags f0004200 index 0
+  CPU_CLUSTER: 0 resource base f6800000 size 8000000 align 0 gran 0 limit 0 flags f0004200 index 1
+  CPU_CLUSTER: 0 resource base feb00000 size 100000 align 0 gran 0 limit 0 flags f0004200 index 2
+  CPU_CLUSTER: 0 resource base fea00000 size 100000 align 0 gran 0 limit 0 flags f0004200 index 3
+  CPU_CLUSTER: 0 resource base fe800000 size 200000 align 0 gran 0 limit 0 flags f0004200 index 4
+  CPU_CLUSTER: 0 resource base 80000000 size 76800000 align 0 gran 0 limit 0 flags e0004200 index 5
+  CPU_CLUSTER: 0 resource base 100000000 size 40000000 align 0 gran 0 limit 0 flags e0004200 index 6
+   CPU: 00
+Setting resources...
+Root Device assign_resources, bus 0 link: 0
+Root Device assign_resources, bus 0 link: 0
+Done setting resources.
+Show resources in subtree (Root Device)...After assigning values.
+ Root Device child on link 0 CPU_CLUSTER: 0
+  CPU_CLUSTER: 0 child on link 0 CPU: 00
+  CPU_CLUSTER: 0 resource base fec00000 size 1400000 align 0 gran 0 limit 0 flags f0004200 index 0
+  CPU_CLUSTER: 0 resource base f6800000 size 8000000 align 0 gran 0 limit 0 flags f0004200 index 1
+  CPU_CLUSTER: 0 resource base feb00000 size 100000 align 0 gran 0 limit 0 flags f0004200 index 2
+  CPU_CLUSTER: 0 resource base fea00000 size 100000 align 0 gran 0 limit 0 flags f0004200 index 3
+  CPU_CLUSTER: 0 resource base fe800000 size 200000 align 0 gran 0 limit 0 flags f0004200 index 4
+  CPU_CLUSTER: 0 resource base 80000000 size 76800000 align 0 gran 0 limit 0 flags e0004200 index 5
+  CPU_CLUSTER: 0 resource base 100000000 size 40000000 align 0 gran 0 limit 0 flags e0004200 index 6
+   CPU: 00
+Done allocating resources.
+BS: BS_DEV_RESOURCES times (us): entry 1 run 188801 exit 0
+Enabling resources...
+done.
+BS: BS_DEV_ENABLE times (us): entry 1 run 2610 exit 0
+clock_configure_plld: PLLD=300000000 ref=38400000, m/n/p=8/125/1
+Initializing devices...
+Root Device init
+Reading tristate GPIOs: 1 Z = 5
+USB controller @ 000000007d000000 set up with UTMI+ PHY
+Ungating power partition 17.
+Partition 17 already Ungated.
+Ungating power partition 27.
+Partition 27 already Ungated.
+Gating power partition 3.
+Power gate toggle request accepted.
+Partition 3 Gated.
+Gating power partition 8.
+Power gate toggle request accepted.
+Partition 8 Gated.
+Gating power partition 20.
+Power gate toggle request accepted.
+Partition 20 Gated.
+Gating power partition 21.
+Power gate toggle request accepted.
+Partition 21 Gated.
+Gating power partition 22.
+Power gate toggle request accepted.
+Partition 22 Gated.
+Gating power partition 25.
+Power gate toggle request accepted.
+Partition 25 Gated.
+Gating power partition 26.
+Power gate toggle request accepted.
+Partition 26 Gated.
+Gating power partition 28.
+Power gate toggle request accepted.
+Partition 28 Gated.
+Gating power partition 29.
+Power gate toggle request accepted.
+Partition 29 Gated.
+SF: Detected W25Q128FW with page size 1000, total 1000000
+FMAP: Found "FMAP" version 1.0 at 00000000801003fe.
+FMAP: base = 0 size = 1000000 #areas = 23
+FMAP: area RW_ELOG found
+FMAP:   offset: f08000
+FMAP:   size:   16384 bytes
+FMAP: RW_ELOG at 0000000000f08000 (offset f08000)
+ELOG: FLASH @0x000000008022f1c0 [SPI 0x00f08000]
+ELOG: area is 4096 bytes, full threshold 3834, shrink size 1024
+ELOG: Event(17) added with size 13
+ELOG: Event(A0) added with size 9
+elog_add_boot_reason: Logged dev mode boot
+Root Device init 206584 usecs
+CPU_CLUSTER: 0 init
+CPU0: MPIDR: 0
+GICv2 - 224 ints SecExtn GICD=0000000050041000 GICC=0000000050042000
+CPU: 00 init
+MTC: 220864 bytes loaded from offset 0000000000203178 @ 0000000081000000
+MTC: Done. Entries size 0x17d40 located at 0000000081008b70
+MTC: Copied 0x17d40 bytes from 0000000081008b70 to 00000000f67cd000
+dsi_display_startup: entry: disp_ctrl: 0000000054200000.
+clock_configure_plld: Failed to match output frequency 608832000, best difference is 82254.
+clock_configure_plld: PLLD=608914254 ref=38400000, m/n/p=7/111/0
+PLLD rate: 608914254 vs 608832000
+Panel Mode: 2560x1800@60.000Hz pclk=304416000
+config:      xres:yres: 2560 x 1800
+    href_sync:vref_sync: 1 x 1
+  hsyn_width:vsyn_width: 80 x 4
+  hfnt_porch:vfnt_porch: 80 x 4
+    hbk_porch:vbk_porch: 80 x 4
+ update_display_shift_clock_divider: ShiftClockDiv=0
+MIPI calibration done
+MIPI calibration done
+clock_configure_plld: Failed to match output frequency 914000000, best difference is 80000.
+clock_configure_plld: PLLD=913920000 ref=38400000, m/n/p=10/238/0
+PLLD rate: 913920000 vs 914000000
+tegra_output_dsi_setup_clock:  plld is configured to: 913920000
+update_display_shift_clock_divider: ShiftClockDiv=1
+Command mode
+Command mode
+dsi_display_startup: display init done.
+pass_mode_info_to_payload: bytes_per_line: 10240, bits_per_pixel: 32
+                x_res x y_res: 2560 x 1800, size: 18432000
+CPU_CLUSTER: 0 init 507484 usecs
+Devices initialized
+Show all devs...After init.
+Root Device: enabled 1
+CPU_CLUSTER: 0: enabled 1
+CPU: 00: enabled 1
+BS: BS_DEV_INIT times (us): entry 6503 run 732382 exit 1
+Finalize devices...
+Devices finalized
+BS: BS_POST_DEVICE times (us): entry 0 run 3474 exit 1
+BS: BS_OS_RESUME_CHECK times (us): entry 0 run 1 exit 0
+Writing coreboot table at 0xf66cb000
+rom_table_end = 0xf66cb000
+... aligned to 0xf66d0000
+ 0. 0000000080000000-00000000f66cafff: RAM
+ 1. 00000000f66cb000-00000000f67fffff: CONFIGURATION TABLES
+ 2. 00000000f6800000-00000000ffffffff: RESERVED
+ 3. 0000000100000000-000000013fffffff: RAM
+out: cmd=0x87: 03 b2 87 00 00 00 04 00 e0 3e 22 80
+in-header: 03 b9 00 00 04 00 00 00
+in-data: 00 20 20 00
+Added 6 GPIOS size 180
+serial number is changeme
+boot media offset=19000
+Wrote coreboot table at: 00000000f66cb000, 0x2d4 bytes, checksum 4d25
+coreboot table: 748 bytes.
+CBMEM ROOT  0. f67ff000 00001000
+CONSOLE     1. f67ef000 00010000
+TIME STAMP  2. f67ee000 00001000
+VBOOT       3. f67ed000 00001000
+VPD         4. f67e5000 00008000
+MTC         5. f67cd000 00018000
+RAMOOPS     6. f66cd000 00100000
+COREBOOT    7. f66cb000 00002000
+BS: BS_WRITE_TABLES times (us): entry 1 run 76884 exit 0
+Booting payload fallback/payload from cbfs
+Loading segment from rom address 0x0000000080100884
+  code (compression=1)
+  New segment dstaddr 0x88104800 memsize 0x22184330 srcaddr 0x801008bc filesize 0x16182
+Loading segment from rom address 0x00000000801008a0
+  Entry Point 0x0000000088104800
+Loading Segment: addr: 0x0000000088104800 memsz: 0x0000000022184330 filesz: 0x0000000000016182
+lb: [0x0000000080200000, 0x0000000080232300)
+Post relocation: addr: 0x0000000088104800 memsz: 0x0000000022184330 filesz: 0x0000000000016182
+using LZMA
+[ 0x88104800, 88139450, 0xaa288b30) <- 801008bc
+Clearing Segment: addr: 0x0000000088139450 memsz: 0x000000002214f6e0
+dest 0000000088104800, end 00000000aa288b30, bouncebuffer 13ff9ba00
+Loaded segments
+BS: BS_PAYLOAD_LOAD times (us): entry 0 run 269647 exit 0
+Jumping to boot code at 0000000088104800
+CPU0: stack: 0000000080223000 - 0000000080224000, lowest used address 0000000080223b40, stack used: 1216 bytes
+CBFS: loading stage from 0x19068 @ 0xfec00000 (61440 bytes), entry @ 0xfec00000
+Looking for fallback/secure_os
+Loaded 1970176 bytes verified BL32 from 0000000000022138 to EP 00000000fed00000
+FMAP: area GBB found
+FMAP:   offset: 301000
+FMAP:   size:   978688 bytes
+FMAP: GBB at 0000000000301000 (offset 301000)
+ERROR: EKS read failure
+WARNING: No EKS
+
+
+Starting depthcharge on smaug...
+Boot policy: Policy set by board
+Man 000015 Snr 4147770957 Product BGND3R Revision 0.1
+new_rt5677_codec: chip = 0x2D, bits_per_sample = 16, sample_rate = 48000
+  lr_frame_size = 256, master_clock = 1
+cros_ec_init: CrosEC protocol v3 supported (128, 128)
+Google ChromeOS EC driver ready, id 'ryu_v1.8.205-f72390a'
+Clearing the recovery request.
+The GBB signature is at 0x88004040 and is:  24 47 42 42
+Wipe memory regions:
+        [0x00000080000000, 0x00000088000000)
+        [0x000000aa288b30, 0x000000f66cb000)
+        [0x00000100000000, 0x00000140000000)
+Initializing EHCI USB controller at 0x7d000100.
+vboot_draw_screen: screen=0x301 force=1
+CBGFX: canvas initialized: width=1800, height=1800, offset=380
+WARNING: No file header found at 0x2fffc0 - try next aligned address: 0x300000.
+WARNING: 'arrow_up.bmp' not found.
+Could not find file 'arrow_up.bmp'.
+WARNING: No file header found at 0x2fffc0 - try next aligned address: 0x300000.
+WARNING: 'arrow_down.bmp' not found.
+Could not find file 'arrow_down.bmp'.
+********** Entered fastboot mode *****************
+vboot_draw_screen: screen=0x302 force=0
+Received: download:00e7d800
+vboot_draw_screen: screen=0x302 force=0
+Response: DATA00e7d800
+Response: OKAY
+vboot_draw_screen: screen=0x302 force=0
+Received: boot
+vboot_draw_screen: screen=0x302 force=0
+Only performing integrity-check.
+Checking key block hash only...
+Key block recovery flag mismatch.
+   - sig_size=256, expecting 256 for algorithm 4
+Kernel preamble is good.
+   - sig_size=256, expecting 256 for algorithm 4
+Kernel is good.
+Boot policy: Match for type 1 with cmdline 4
+Bootimg: Ramdisk is present
+Loading FIT.
+Image fdt@5 has 107374 bytes.
+Image fdt@4 has 106757 bytes.
+Image fdt@3 has 106709 bytes.
+Image fdt@2 has 88279 bytes.
+Image fdt@1 has 26352 bytes.
+Image kernel@1 has 4638695 bytes.
+Compat preference: google,smaug-rev5
+Config conf@5, kernel kernel@1, fdt fdt@5, compat google,smaug-rev2 google,smaug nvidia,tegra210
+Config conf@4, kernel kernel@1, fdt fdt@4, compat google,smaug-rev8 google,smaug-rev7 google,smaug-rev6 google,smaug-rev5 (match) google,smaug-rev4 google,smaug-rev3 google,smaug-rev1 google,smaug nvidia,tegra210
+Config conf@3, kernel kernel@1, fdt fdt@3, compat google,smaug-rev0 google,smaug nvidia,tegra210
+Config conf@2, kernel kernel@1, fdt fdt@2, compat nvidia,foster nvidia,tegra210
+Config conf@1 (default), kernel kernel@1, fdt fdt@1, compat nvidia,norrin nvidia,tegra132 nvidia,tegra124
+Choosing best match conf@4.
+Adding cmdline : cros_secure vpr=0x08000000@0xf6800000 cros_legacy console= init=/init rw ignore_loglevel=1 drm.atomic=1 firmware_class.path=/vendor/firmware kern_guid=00000000-0000-0000-0000-000000000000 no_console_suspend androidboot.selinux=permissive
+NSMEM: base64=0x80000000 size64=0x76600000
+NSMEM: base64=0x100000000 size64=0x40000000
+NSMEM ranges recorded by TOS
+EMC: Added /memory-controller@7001b000/emc-table to device-tree
+Response: OKAY
+vboot_draw_screen: screen=0x0 force=0
+Shutting down all USB controllers.
+Exiting depthcharge with code 4 at timestamp: 15447357
+Decompressing LZMA kernel to 0x80080000
+jumping to kernel
