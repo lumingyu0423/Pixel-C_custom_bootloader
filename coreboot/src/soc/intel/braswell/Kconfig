@@ -1,0 +1,213 @@
+
+config SOC_INTEL_BRASWELL
+	bool
+	help
+	  Braswell M/D part support.
+
+if SOC_INTEL_BRASWELL
+
+config CPU_SPECIFIC_OPTIONS
+	def_bool y
+	select ARCH_BOOTBLOCK_X86_32
+	select ARCH_ROMSTAGE_X86_32
+	select ARCH_RAMSTAGE_X86_32
+	select BACKUP_DEFAULT_SMM_REGION
+	select CACHE_MRC_SETTINGS
+	select CACHE_RELOCATED_RAMSTAGE_OUTSIDE_CBMEM
+	select CACHE_ROM
+	select CAR_MIGRATION
+	select COLLECT_TIMESTAMPS
+	select COMMON_RAM_INIT
+	select COMMON_RESET
+	select COMMON_ROMSTAGE
+	select COMMON_STACK
+	select CPU_MICROCODE_IN_CBFS
+	select CPU_INTEL_TURBO_NOT_PACKAGE_SCOPED
+	select DYNAMIC_CBMEM
+	select HAS_PRECBMEM_TIMESTAMP_REGION
+	select HAVE_MONOTONIC_TIMER
+	select HAVE_SMI_HANDLER
+	select HAVE_HARD_RESET
+	select MMCONF_SUPPORT
+	select MMCONF_SUPPORT_DEFAULT
+	select PARALLEL_MP
+	select PCIEXP_ASPM
+	select PCIEXP_CLK_PM
+	select PCIEXP_COMMON_CLOCK
+	select PCIEXP_L1_SUB_STATE
+	select PLATFORM_USES_FSP1_1
+	select RELOCATABLE_MODULES
+	select SMM_MODULES
+	select SMM_TSEG
+	select SMP
+	select SPI_FLASH
+	select SSE2
+	select TSC_CONSTANT_RATE
+	select TSC_MONOTONIC_TIMER
+	select TSC_SYNC_MFENCE
+	select UDELAY_TSC
+	select USE_GENERIC_FSP_CAR_INC
+
+config BOOTBLOCK_CPU_INIT
+	string
+	default "soc/intel/braswell/bootblock/bootblock.c"
+
+config MMCONF_BASE_ADDRESS
+	hex "PCIe CFG Base Address"
+	default 0xe0000000
+
+config MAX_CPUS
+	int
+	default 4
+
+config CPU_ADDR_BITS
+	int
+	default 36
+
+config SMM_TSEG_SIZE
+	hex
+	default 0x800000
+
+config SMM_RESERVED_SIZE
+	hex
+	default 0x100000
+
+# Cache As RAM region layout:
+#
+# +-------------+ DCACHE_RAM_BASE + DCACHE_RAM_SIZE
+# |  Stack      |\
+# |    |        | * DCACHE_RAM_ROMSTAGE_STACK_SIZE
+# |    v        |/
+# +-------------+
+# |    ^        |
+# |    |        |
+# | CAR Globals |
+# +-------------+ DCACHE_RAM_BASE
+#
+
+config DCACHE_RAM_BASE
+	hex "Temporary RAM Base Address"
+	default 0xfef00000
+
+config DCACHE_RAM_SIZE
+	hex "Temporary RAM Size"
+	default 0x4000
+	help
+	  The size of the cache-as-ram region required during bootblock
+	  and/or romstage. Note DCACHE_RAM_SIZE and DCACHE_RAM_MRC_VAR_SIZE
+	  must add up to a power of 2.
+
+config DCACHE_RAM_ROMSTAGE_STACK_SIZE
+	hex
+	default 0x800
+	help
+	  The amount of anticipated stack usage from the data cache
+	  during pre-ram rom stage execution.
+
+config RESET_ON_INVALID_RAMSTAGE_CACHE
+	bool "Reset the system on S3 wake when ramstage cache invalid."
+	default n
+	depends on RELOCATABLE_RAMSTAGE
+	help
+	  The haswell romstage code caches the loaded ramstage program
+	  in SMM space. On S3 wake the romstage will copy over a fresh
+	  ramstage that was cached in the SMM space. This option determines
+	  the action to take when the ramstage cache is invalid. If selected
+	  the system will reset otherwise the ramstage will be reloaded from
+	  cbfs.
+
+config CBFS_SIZE
+	hex "Size of CBFS filesystem in ROM"
+	default 0x100000
+	help
+	  The firmware image has to store a lot more than just coreboot,
+	  including:
+	   - a firmware descriptor
+	   - Intel Management Engine firmware
+	   - MRC cache information
+	  This option allows to limit the size of the CBFS portion in the
+	  firmware image.
+
+config LOCK_MANAGEMENT_ENGINE
+	bool "Lock Management Engine section"
+	default n
+	help
+	  The Intel Management Engine supports preventing write accesses
+	  from the host to the Management Engine section in the firmware
+	  descriptor. If the ME section is locked, it can only be overwritten
+	  with an external SPI flash programmer. You will want this if you
+	  want to increase security of your ROM image once you are sure
+	  that the ME firmware is no longer going to change.
+
+	  If unsure, say N.
+
+config ENABLE_BUILTIN_COM1
+	bool "Enable builtin COM1 Serial Port"
+	default n
+	help
+	  The PMC has a legacy COM1 serial port. Choose this option to
+	  configure the pads and enable it. This serial port can be used for
+	  the debug console.
+
+config HAVE_IFD_BIN
+	bool
+	default y
+
+config BUILD_WITH_FAKE_IFD
+	bool "Build with a fake IFD"
+	default y if !HAVE_IFD_BIN
+	help
+	  If you don't have an Intel Firmware Descriptor (ifd.bin) for your
+	  board, you can select this option and coreboot will build without it.
+	  Though, the resulting coreboot.rom will not contain all parts required
+	  to get coreboot running on your board. You can however write only the
+	  BIOS section to your board's flash ROM and keep the other sections
+	  untouched. Unfortunately the current version of flashrom doesn't
+	  support this yet. But there is a patch pending [1].
+
+	  WARNING: Never write a complete coreboot.rom to your flash ROM if it
+		   was built with a fake IFD. It just won't work.
+
+	  [1] http://www.flashrom.org/pipermail/flashrom/2013-June/011083.html
+
+config HAVE_ME_BIN
+	bool "Add Intel Management Engine firmware"
+	default y
+	help
+	  The Intel processor in the selected system requires a special firmware
+	  for an integrated controller called Management Engine (ME). The ME
+	  firmware might be provided in coreboot's 3rdparty/blobs repository. If
+	  not and if you don't have the firmware elsewhere, you can still
+	  build coreboot without it. In this case however, you'll have to make
+	  sure that you don't overwrite your ME firmware on your flash ROM.
+
+config IED_REGION_SIZE
+	hex
+	default 0x400000
+
+config IFD_BIN_PATH
+	string "Path to intel firmware descriptor"
+	depends on !BUILD_WITH_FAKE_IFD
+	default "3rdparty/blobs/mainboard/$(MAINBOARDDIR)/descriptor.bin"
+
+config IFD_BIOS_SECTION
+	depends on BUILD_WITH_FAKE_IFD
+	string
+	default ""
+
+config IFD_ME_SECTION
+	depends on BUILD_WITH_FAKE_IFD
+	string
+	default ""
+
+config IFD_PLATFORM_SECTION
+	depends on BUILD_WITH_FAKE_IFD
+	string
+	default ""
+
+config ME_BIN_PATH
+	string "Path to management engine firmware"
+	depends on HAVE_ME_BIN
+	default "3rdparty/blobs/mainboard/$(MAINBOARDDIR)/me.bin"
+
+endif

@@ -1,0 +1,8 @@
+build/
+private/
+*.swp
+*.pyc
+tags
+TAGS
+cscope.*
+.tests-passed

@@ -1,0 +1,67 @@
+##
+## Copyright 2013 Google Inc.  All rights reserved.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+choice
+	prompt "Kernel format"
+	default KERNEL_DUMMY
+	help
+	  The format the kernel is stored in on disk.
+
+	config KERNEL_ZIMAGE
+	bool "zimage"
+	depends on ARCH_X86
+
+	config KERNEL_FIT
+	bool "FIT"
+
+	config KERNEL_DUMMY
+	bool "dummy"
+endchoice
+
+config KERNEL_LEGACY
+	bool "Allow alternative(legacy) kernels"
+	default n
+
+config MACHID
+       hex "Machine ID to pass to the kernel"
+       depends on KERNEL_LEGACY
+       default 0
+       help
+         On some platforms this value could be discovered at run time.
+
+config ATAG_BASE
+       hex "Address in DRAM where to place ATAGs"
+       depends on KERNEL_LEGACY
+       depends on ARCH_ARM
+       default 0
+
+config KERNEL_FIT_FDT_ADDR
+	hex "FIT device tree load address."
+	depends on KERNEL_FIT
+	help
+	  Where to put the updated device tree when booting a FIT image.
+
+config ANDROID_DT_FIXUP
+	bool "Fixup device tree with properties for Android"
+	default n
+	help
+	  Enabling this option will create a /firmware/android node in the
+	  device tree and populate it with the hardware name and other
+	  values from the VPD such as the serial number.
+
+config BCB_SUPPORT
+	bool "Enable support for Bootloader control block"
+	default n

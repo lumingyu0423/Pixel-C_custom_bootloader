@@ -1,0 +1,293 @@
+# -*- makefile -*-
+# vim: set filetype=make :
+# Copyright (c) 2012 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+#
+# Embedded Controller firmware build system - common targets
+#
+
+objs := $(all-y)
+deps := $(objs:%.o=%.o.d)
+build-utils := $(foreach u,$(build-util-bin),$(out)/util/$(u))
+host-utils := $(foreach u,$(host-util-bin),$(out)/util/$(u))
+build-srcs := $(foreach u,$(build-util-bin),$(sort $($(u)-objs:%.o=util/%.c) util/$(u).c))
+host-srcs := $(foreach u,$(host-util-bin),$(sort $($(u)-objs:%.o=util/%.c) util/$(u).c))
+
+# Don't do a build test on the following boards:
+skip_boards = OWNERS host it8380dev
+boards := $(filter-out $(skip_boards),$(subst board/,,$(wildcard board/*)))
+
+# Create output directories if necessary
+_dir_create := $(foreach d,$(dirs),$(shell [ -d $(out)/$(d) ] || \
+	    mkdir -p $(out)/$(d)))
+_dir_y_create := $(foreach d,$(dirs-y),$(shell [ -d $(out)/$(d) ] || \
+	    mkdir -p $(out)/$(d)))
+
+section = $(subst .,,$(suffix $(1)))
+section_is = $(subst .,,SECTION_IS_$(suffix $(1)))
+
+# Decrease verbosity unless you pass V=1
+quiet = $(if $(V),,@echo '  $(2)' $(subst $(out)/,,$@) ; )$(cmd_$(1))
+silent = $(if $(V),,1>/dev/null)
+silent_err = $(if $(V),,2>/dev/null)
+
+# commands to build all targets
+cmd_lds = $(CPP) -P -C -MMD -MF $@.d -MT $@ $(CPPFLAGS) \
+          -D$(call section_is,$*) \
+          -DSECTION=$(call section,$*) $< -o $@
+# Allow obj_to_bin to be overridden by board or chip specific commands
+cmd_obj_to_bin ?= $(OBJCOPY) --gap-fill=0xff -O binary $^ $(out)/$*.bin.tmp
+cmd_flat_to_obj = $(CC) -T $(out)/firmware_image.lds -nostdlib $(CPPFLAGS) \
+                  -Wl,--build-id=none -o $@ $<
+cmd_elf_to_flat = $(OBJCOPY) -O binary $< $@
+cmd_elf_to_dis = $(OBJDUMP) -D $< > $@
+cmd_elf_to_hex = $(OBJCOPY) -O ihex $< $@
+cmd_bin_to_hex = $(OBJCOPY) -I binary -O ihex \
+	--change-addresses $(_flash_base) $^ $@
+cmd_elf = $(CC) $(objs) $(LDFLAGS) -o $@ -Wl,-T,$< -Wl,-Map,$(out)/$*.map
+cmd_smap = $(NM) $< | sort > $@
+cmd_exe = $(CC) $(objs) $(HOST_TEST_LDFLAGS) -o $@
+cmd_c_to_o = $(CC) $(CFLAGS) -MMD -MF $@.d -c $< -o $@
+cmd_c_to_build = $(BUILDCC) $(BUILD_CFLAGS) \
+	         $(sort $(foreach c,$($(*F)-objs),util/$(c:%.o=%.c)) $*.c) \
+	         $(BUILD_LDFLAGS) \
+	         -MMD -MF $@.d -o $@
+cmd_c_to_host = $(HOSTCC) $(HOST_CFLAGS) -MMD -MF $@.d  -o $@ \
+	         $(sort $(foreach c,$($(*F)-objs),util/$(c:%.o=%.c)) $*.c)
+cmd_host_test = ./util/run_host_test $* $(silent)
+cmd_date = $(if $(USE_GIT_DATE),cat /dev/null,./util/getdate.sh) > $@
+cmd_version = ./util/getversion.sh > $@
+cmd_mv_from_tmp = mv $(out)/$*.bin.tmp $(out)/$*.bin
+cmd_extractrw-y = dd if=$(out)/$(PROJECT).bin.tmp of=$(out)/$(PROJECT).RW.bin \
+	       bs=1 count=$(_rw_size) skip=$(_rw_off) $(silent_err)
+cmd_copyrw-y = cd $(out) && cp $(PROJECT).RW.flat $(PROJECT).RW.bin
+
+# commands for RSA signature
+cmd_pubkey = ./util/pem_extract_pubkey.py $(PEM) > $@
+cmd_rsasign = futility sign --type usbpd1 --pem $(PEM) $(out)/$*.bin.tmp
+
+# commands to build optional xref files
+cmd_deps_to_list = cat $(deps) | tr -d ':\\' | tr ' ' '\012' \
+	| egrep '\.[chS]$$' | sort | uniq > $@
+cmd_etags = etags -o $@ $(shell cat $<)
+cmd_ctags = ctags -o $@ $(shell cat $<)
+targ_if_prog = $(if $(shell which $(1) 2>/dev/null),$(2),)
+
+.PHONY: all tests utils utils-host utils-build hosttests
+
+buildall: $(foreach b, $(boards), proj-$(b)) runtests
+	@touch .tests-passed
+	@echo "$@ completed successfully!"
+
+proj-%:
+	@echo "======= building $*"; \
+	$(MAKE) --no-print-directory BOARD=$* V=$(V)
+
+dis-y = $(out)/$(PROJECT).RW.dis
+dis-$(CONFIG_FW_INCLUDE_RO) += $(out)/$(PROJECT).RO.dis
+dis: $(dis-y)
+
+hex-y = $(out)/$(PROJECT).RO.hex $(out)/$(PROJECT).RW.hex $(out)/$(PROJECT).hex
+hex: $(hex-y)
+
+utils-host: $(host-utils)
+
+utils-build: $(build-utils)
+
+utils: utils-host utils-build
+
+# On board test binaries
+test-targets=$(foreach t,$(test-list-y),test-$(t))
+.PHONY: $(test-targets)
+
+ifeq "$(CONFIG_COMMON_RUNTIME)" "y"
+$(test-targets): test-%:
+	@set -e ; \
+	echo "  BUILD   $(out)/$*" ; \
+	$(MAKE) --no-print-directory BOARD=$(BOARD) PROJECT=$* \
+	        V=$(V) out=$(out)/$* TEST_BUILD=y; \
+	cp $(out)/$*/$*.bin $(out)/test-$*.bin
+endif
+
+tests: $(test-targets)
+
+# Emulator test executables
+host-test-targets=$(foreach t,$(test-list-host),host-$(t))
+run-test-targets=$(foreach t,$(test-list-host),run-$(t))
+.PHONY: $(host-test-targets) $(run-test-targets)
+
+$(host-test-targets): host-%:
+	@set -e ; \
+	echo "  BUILD   host - build/host/$*" ; \
+	$(MAKE) --no-print-directory BOARD=host PROJECT=$* \
+	        V=$(V) out=build/host/$* TEST_BUILD=y EMU_BUILD=y $(TEST_FLAG) \
+		CROSS_COMPILE= build/host/$*/$*.exe
+
+$(run-test-targets): run-%: host-%
+	$(call quiet,host_test,TEST   )
+
+hosttests: $(host-test-targets)
+runtests: $(run-test-targets)
+
+cov-test-targets=$(foreach t,$(test-list-host),build/host/$(t).info)
+bldversion=$(shell (./util/getversion.sh ; echo VERSION) | $(CPP) -P)
+
+# lcov fails when multiple instances run at the same time.
+# We need to run them sequentially by using flock
+cmd_lcov=flock /tmp/ec-lcov-lock -c "lcov -q -o $@ -c -d build/host/$*"
+cmd_report_cov=genhtml -q -o build/host/coverage_rpt -t \
+	       "EC Unittest "$(bldversion) $^
+
+build/host/%.info: run-%
+	$(call quiet,lcov,COV    )
+
+coverage: TEST_FLAG=TEST_COVERAGE=y
+coverage: $(cov-test-targets)
+	$(call quiet,report_cov,REPORT )
+
+.PHONY: coverage
+
+$(out)/firmware_image.lds: common/firmware_image.lds.S
+	$(call quiet,lds,LDS    )
+$(out)/%.lds: core/$(CORE)/ec.lds.S
+	$(call quiet,lds,LDS    )
+
+$(out)/%.bin: $(out)/%.obj
+	$(call quiet,obj_to_bin,OBJCOPY)
+	$(if $(wildcard $(PEM)),$(call quiet,rsasign,SIGN   ),)
+	$(if $(wildcard $(PEM)),$(call quiet,extractrw-y,EXTR_RW), \
+			$(call quiet,copyrw-y,COPY_RW))
+	$(call quiet,mv_from_tmp,MV     )
+
+flat-y = $(out)/$(PROJECT).RW.flat
+flat-$(CONFIG_FW_INCLUDE_RO) += $(out)/$(PROJECT).RO.flat
+
+deps += $(out)/firmware_image.lds.d $(flat-y:%.flat=%.lds.d)
+
+$(out)/%.obj: common/firmware_image.S $(out)/firmware_image.lds $(flat-y)
+	$(call quiet,flat_to_obj,CAT    )
+
+$(out)/%.dis: $(out)/%.elf
+	$(call quiet,elf_to_dis,OBJDUMP)
+
+$(out)/%.flat: $(out)/%.elf $(out)/%.smap
+	$(call quiet,elf_to_flat,OBJCOPY)
+
+$(out)/%.hex: $(out)/%.elf $(out)/%.smap
+	$(call quiet,elf_to_hex,OBJCOPY)
+
+$(out)/$(PROJECT).hex: $(out)/$(PROJECT).bin
+	$(call quiet,bin_to_hex,OBJCOPY)
+
+$(out)/%.elf: $(out)/%.lds $(objs)
+	$(call quiet,elf,LD     )
+
+$(out)/%.smap: $(out)/%.elf
+	$(call quiet,smap,NM     )
+
+$(out)/$(PROJECT).exe: $(objs)
+	$(call quiet,exe,EXE    )
+
+$(out)/%.o:%.c
+	$(call quiet,c_to_o,CC     )
+
+$(out)/vboot/%.o:$(VBOOT_SOURCE)/%.c
+	$(call quiet,c_to_o,CC     )
+
+$(out)/%.o:%.S
+	$(call quiet,c_to_o,AS     )
+
+# Conditionally force the rebuilding of ec_version.h only if it would be
+# changed.
+old_version_hash := $(shell cat $(out)/ec_version.h 2> /dev/null | md5sum -)
+new_version_hash := $(shell BOARD=$(BOARD) ./util/getversion.sh | md5sum -)
+
+ifneq ($(old_version_hash),$(new_version_hash))
+.PHONY: $(out)/ec_version.h
+endif
+
+# All of the objects have an order only dependency on the ec_version header.
+# This ensures that if ec_version.h needs to be build (because it was marked
+# PHONY above) then it will be rebuilt before any objects.  This is important
+# because some source files will include ev_version.h and fail to compile if
+# it doesn't already exist.  This dependency shouldn't be a normal dependency
+# because that would cause every object to be rebuilt when ec_version.h
+# changes, instead of just the ones that actually depend on it.  The objects
+# that truly depend on ec_version.h will have that information encoded in their
+# .d file.
+$(objs): | $(out)/ec_version.h
+
+$(out)/ec_version.h:
+	$(call quiet,version,VERSION)
+
+$(out)/common/version.o: $(out)/ec_date.h
+$(out)/ec_date.h: $(filter-out $(out)/common/version.o,$(objs))
+	$(call quiet,date,DATE   )
+
+$(out)/gen_pub_key.h: $(PEM)
+	$(call quiet,pubkey,PUBKEY )
+
+$(out)/common/rwsig.o: $(out)/gen_pub_key.h
+
+$(build-utils): $(out)/%:$(build-srcs)
+	$(call quiet,c_to_build,BUILDCC)
+
+$(host-utils): $(out)/%:$(host-srcs)
+	$(call quiet,c_to_host,HOSTCC )
+
+$(out)/cscope.files: $(out)/$(PROJECT).bin
+	$(call quiet,deps_to_list,SH     )
+
+$(out)/TAGS: $(out)/cscope.files
+	$(call quiet,etags,ETAGS  )
+
+$(out)/tags: $(out)/cscope.files
+	$(call quiet,ctags,CTAGS  )
+
+# TODO: optional make rules for PROJECT_EXTRA
+$(npcx-flash-fw-bin):
+	$(if $(V),,@echo '  EXTBIN ' $(subst $(out)/,,$@) ; )
+	-@ mkdir -p $(@D)
+	-@ $(CC) $(CFLAGS) -MMD -MF $(out)/$(npcx-lfw).d -c $(npcx-flash-fw).c \
+		-o $(out)/$(npcx-flash-fw).o
+	-@ $(CC) $(out)/$(npcx-flash-fw).o $(LDFLAGS) \
+		-o $(out)/$(npcx-flash-fw).elf -Wl,-T,$(npcx-flash-fw).ld \
+		-Wl,-Map,$(out)/$(npcx-flash-fw).map
+	-@ $(OBJCOPY) -O binary $(out)/$(npcx-flash-fw).elf $@
+
+# TODO: optional make rules for PROJECT_EXTRA
+$(npcx-lfw-bin):
+	$(if $(V),,@echo '  EXTBIN ' $(subst $(out)/,,$@) ; )
+	-@ mkdir -p $(@D)
+	-@ $(CC) $(CFLAGS) -MMD -MF $(out)/$(npcx-lfw).d -c $(npcx-lfw).c \
+		-o $(out)/$(npcx-lfw).o
+	-@ $(CC) $(out)/$(npcx-lfw).o $(LDFLAGS) -o $(out)/$(npcx-lfw).elf \
+		-Wl,-T,$(npcx-lfw).ld -Wl,-Map,$(out)/$(npcx-lfw).map
+	-@ $(OBJCOPY) -O binary $(out)/$(npcx-lfw).elf $@
+
+.PHONY: xrefs
+xrefs: $(call targ_if_prog,etags,$(out)/TAGS) \
+	$(call targ_if_prog,ctags,$(out)/tags)
+
+.PHONY: flash
+flash: $(out)/ec.bin
+	openocd -c "set BOARD $(BOARD)"\
+		-c "set BUILD_DIR $(out)"\
+		-f board/$(BOARD)/openocd-flash.cfg
+
+.PHONY: flash_ec
+flash_ec: $(out)/ec.bin
+	./util/flash_ec --board $(BOARD) --image $(out)/ec.bin
+
+.PHONY: clean
+clean:
+	-rm -rf $(out)
+
+.PHONY: clobber
+clobber:
+	-rm -rf build TAGS cscope.files cscope.out
+
+.SECONDARY:
+
+-include $(deps)

@@ -1,0 +1,35 @@
+##
+## This file is part of the coreboot project.
+##
+## Copyright 2015 Google Inc.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+##
+
+config DRIVERS_MAXIM_MAX77620
+       bool "Maxim MAX77620 support"
+       default n
+
+config DRIVERS_MAXIM_MAX77620_RTC
+       bool "Maxim MAX77620 RTC support"
+       default n
+       select DRIVERS_MAXIM_MAX77620
+
+config DRIVERS_MAXIM_MAX77620_RTC_BUS
+       int "Maxim MAX77620 RTC bus"
+       depends on DRIVERS_MAXIM_MAX77620_RTC
+
+config DRIVERS_MAXIM_MAX77620_RTC_ADDR
+       hex "Maxim MAX77620 RTC chip address"
+       depends on DRIVERS_MAXIM_MAX77620_RTC

@@ -1,0 +1,543 @@
+#!/bin/bash
+
+# Copyright (c) 2014 The Chromium OS Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+SCRIPT="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT")"
+
+EC_DIR="$(readlink -f "${SCRIPT_DIR}/..")"
+if [[ "$(basename "${EC_DIR}")" != "ec" ]]; then
+	EC_DIR=
+fi
+
+# Loads script libraries.
+. "/usr/share/misc/shflags" || exit 1
+
+# Redirects tput to stderr, and drop any error messages.
+tput2() {
+	tput "$@" 1>&2 2>/dev/null || true
+}
+
+error() {
+	tput2 bold && tput2 setaf 1
+	echo "ERROR: $*" >&2
+	tput2 sgr0
+}
+
+
+info() {
+	tput2 bold && tput2 setaf 2
+	echo "INFO: $*" >&2
+	tput2 sgr0
+}
+
+warn() {
+	tput2 bold && tput2 setaf 3
+	echo "WARNING: $*" >&2
+	tput2 sgr0
+}
+
+die() {
+	[ -z "$*" ] || error "$@"
+	exit 1
+}
+
+# Note: Link is a special case and is not included here.
+BOARDS_LM4=(
+	auron
+	falco
+	peppy
+	rambi
+	samus
+	squawks
+)
+
+BOARDS_LM4_USB=(
+	samus
+)
+
+BOARDS_STM32=(
+	big
+	blaze
+	discovery
+	firefly
+	fruitpie
+	glados_pd
+	honeybuns
+	jerry
+	kitty
+	llama
+	mighty
+	minimuffin
+	nyan
+	oak
+	oak_pd
+	pinky
+	pit
+	plankton
+	ryu
+	samus_pd
+	snow
+	speedy
+	spring
+	zinger
+)
+BOARDS_STM32_PROG_EN=(
+	plankton
+)
+
+BOARDS_STM32_DFU=(
+	dingdong
+	hoho
+	twinkie
+)
+
+BOARDS_NPCX=(
+	npcx_evb
+)
+
+BOARDS_MEC1322=(
+	cyan
+	glados
+	glower
+	strago
+)
+
+# Flags
+DEFINE_string board "${DEFAULT_BOARD}" \
+	"The board to run debugger on."
+DEFINE_string image "" \
+	"Full pathname of the EC firmware image to flash."
+DEFINE_string offset "0" \
+	"Offset where to program the image from."
+DEFINE_integer port 9999 \
+	"Port to communicate to servo on."
+DEFINE_boolean ro "${FLAGS_FALSE}" \
+	"Write only the read-only partition"
+DEFINE_boolean unprotect "${FLAGS_FALSE}" \
+	"Clear the protect flag."
+DEFINE_boolean usb "${FLAGS_FALSE}" \
+	"Use case-closed debugging over USB type-C."
+
+# Parse command line
+FLAGS_HELP="usage: $0 [flags]"
+FLAGS "$@" || exit 1
+eval set -- "${FLAGS_ARGV}"
+if [[ $# -gt 0 ]]; then
+	die "invalid arguments: \"$*\""
+fi
+
+set -e
+
+SERVO_TYPE=servo
+
+in_array() {
+	local n=$#
+	local value=${!n}
+
+	for (( i=1; i<$#; i++ )) do
+		if [ "${!i}" == "${value}" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+servo_has_warm_reset() {
+	dut_control warm_reset >/dev/null 2>&1
+}
+
+# reset the EC
+toad_ec_hard_reset() {
+	if dut_control cold_reset 2>/dev/null ; then
+		dut_control cold_reset:on
+		dut_control cold_reset:off
+	else
+		info "you probably need to hard-reset your EC manually"
+	fi
+}
+
+servo_ec_hard_reset() {
+	dut_control cold_reset:on
+	dut_control cold_reset:off
+}
+
+servo_usbpd_hard_reset() {
+	dut_control usbpd_reset:on sleep:0.5 usbpd_reset:off
+}
+
+servo_sh_hard_reset() {
+	dut_control sh_reset:on
+	dut_control sh_reset:off
+}
+
+ec_reset() {
+	eval ${SERVO_TYPE}_${MCU}_hard_reset
+}
+
+# force the EC to boot in serial monitor mode
+toad_ec_boot0() {
+	dut_control boot_mode:yes
+}
+
+servo_ec_boot0() {
+	dut_control spi1_vref:pp3300
+}
+
+servo_usbpd_boot0() {
+	dut_control usbpd_boot_mode:on
+}
+
+servo_sh_boot0() {
+	dut_control sh_boot_mode:on
+}
+
+ec_enable_boot0() {
+	# Enable programming GPIOs
+	if $(in_array "${BOARDS_STM32_PROG_EN[@]}" "${BOARD}"); then
+		dut_control prog_en:yes
+	fi
+	eval ${SERVO_TYPE}_${MCU}_boot0
+}
+
+# Put back the servo and the system in a clean state at exit
+FROZEN_PIDS=""
+cleanup() {
+	if [ -n "${save}" ]; then
+		info "Restoring servo settings..."
+		servo_restore "$save"
+	fi
+
+	for pid in ${FROZEN_PIDS}; do
+		info "Sending SIGCONT to process ${pid}!"
+		kill -CONT ${pid}
+	done
+
+	ec_reset
+}
+trap cleanup EXIT
+
+BOARD=${FLAGS_board}
+BOARD_ROOT=/build/${BOARD}
+
+# Possible default EC images
+if [ "${FLAGS_ro}" = ${FLAGS_TRUE} ] ; then
+	EC_FILE=ec.RO.flat
+else
+	EC_FILE=ec.bin
+fi
+
+EMERGE_BUILD=${BOARD_ROOT}/firmware/${EC_FILE}
+
+LOCAL_BUILD=
+if [[ -n "${EC_DIR}" ]]; then
+	LOCAL_BUILD="${EC_DIR}/build/${BOARD}/${EC_FILE}"
+fi
+
+# Find the EC image to use
+function ec_image() {
+	# No image specified on the command line, try default ones
+	if [[ -n "${FLAGS_image}" ]] ; then
+		if [ -f "${FLAGS_image}" ] || \
+		   [ "${FLAGS_image}" == "-" ]; then
+			echo "${FLAGS_image}"
+			return
+		fi
+		die "Invalid image path : ${FLAGS_image}"
+	else
+		if [ -f "${LOCAL_BUILD}" ]; then
+			echo "${LOCAL_BUILD}"
+			return
+		fi
+		if [ -f "${EMERGE_BUILD}" ]; then
+			echo "${EMERGE_BUILD}"
+			return
+		fi
+	fi
+	die "no EC image found : build one or specify one."
+}
+
+DUT_CONTROL_CMD="dut-control --port=${FLAGS_port}"
+
+function dut_control() {
+	$DUT_CONTROL_CMD "$@" >/dev/null
+}
+
+# Find the EC UART on the servo v2
+function ec_uart() {
+	SERVOD_FAIL="Cannot communicate with servo. is servod running ?"
+	($DUT_CONTROL_CMD ${MCU}_uart_pty || \
+	    die "${SERVOD_FAIL}") | cut -d: -f2
+}
+
+# Servo variables management
+case "${BOARD}" in
+	glados_pd|oak_pd|samus_pd ) MCU="usbpd" ;;
+	dingdong|hoho|twinkie ) DUT_CONTROL_CMD="true" ; MCU="ec" ;;
+	*) MCU="ec" ;;
+esac
+
+servo_VARS="${MCU}_uart_en ${MCU}_uart_parity \
+${MCU}_uart_baudrate jtag_buf_on_flex_en jtag_buf_en spi1_vref"
+if [[ "${MCU}" == "usbpd" ]] ; then
+	servo_VARS+=" usbpd_boot_mode"
+	if $(in_array "${BOARDS_STM32_PROG_EN[@]}" "${BOARD}"); then
+		servo_VARS+=" prog_en"
+	fi
+fi
+toad_VARS="${MCU}_uart_parity \
+${MCU}_uart_baudrate boot_mode"
+
+function servo_save() {
+	SERVO_VARS_NAME=${SERVO_TYPE}_VARS
+	$DUT_CONTROL_CMD ${!SERVO_VARS_NAME}
+}
+
+function servo_restore() {
+	echo "$1" | while read line
+	do
+		dut_control "$line"
+	done
+}
+
+function claim_pty() {
+	if grep -q cros_sdk /proc/1/cmdline; then
+		die "You must run this tool in a chroot that was entered with" \
+		    "'cros_sdk --no-ns-pid' (see crbug.com/444931 for details)"
+	fi
+
+	FROZEN_PIDS=$(lsof -FR 2>/dev/null -- $1 | tr -d 'pR')
+
+	# reverse order to SIGSTOP parents before children
+	for pid in $(echo ${FROZEN_PIDS} | tac -s " "); do
+		info "Sending SIGSTOP to process ${pid}!"
+		sleep 0.02
+		kill -STOP ${pid}
+	done
+}
+
+# Board specific flashing scripts
+
+# helper function for setting up servo v2/3 with openocd paths
+function setup_openocd() {
+	if [[ -z "${EC_DIR}" ]]; then
+	    # check if we're on beaglebone
+	    if [[ -e "/usr/bin/lib" ]]; then
+		OCD_CFG="servo_v3.cfg"
+		OCD_PATH="/usr/bin/lib"
+	    else
+		die "Cannot locate openocd configs"
+	    fi
+	else
+	    if [ "${FLAGS_usb}" = ${FLAGS_TRUE} ] ; then
+		OCD_CFG="${BOARD}.cfg"
+	    else
+		OCD_CFG="servo_v2.cfg"
+	    fi
+	fi
+}
+
+function flash_stm32() {
+	TOOL_PATH="${EC_DIR}/build/${BOARD}/util:$PATH"
+	STM32MON=$(PATH="${TOOL_PATH}" which stm32mon)
+	if [ ! -x "$STM32MON" ]; then
+		die "no stm32mon util found."
+	fi
+
+	if [ "${FLAGS_unprotect}" = ${FLAGS_TRUE} ] ; then
+		# Unprotect exists, but isn't needed because erasing pstate is
+		# implicit in writing the entire image
+		die "--unprotect not supported for this board."
+	fi
+
+	info "Using serial flasher : ${STM32MON}"
+	claim_pty ${EC_UART}
+
+	if [ "${SERVO_TYPE}" = "servo" ] ; then
+		dut_control ${MCU}_uart_en:on
+	fi
+	dut_control ${MCU}_uart_parity:even
+	dut_control ${MCU}_uart_baudrate:115200
+	if $(servo_has_warm_reset); then
+		dut_control warm_reset:on
+	fi
+	# Force the EC to boot in serial monitor mode
+	ec_enable_boot0
+	# Reset the EC
+	ec_reset
+	# Unprotect flash, erase, and write
+	${STM32MON} -d ${EC_UART} -U -u -e -w "${IMG}"
+	# Remove the Application processor reset
+	# TODO(crosbug.com/p/30738): we cannot rely on servo_VARS to restore it
+	if $(servo_has_warm_reset); then
+		dut_control warm_reset:off
+	fi
+}
+
+function flash_stm32_dfu() {
+	DFU_DEVICE=0483:df11
+	ADDR=0x08000000
+	DFU_UTIL='dfu-util'
+	which $DFU_UTIL &> /dev/null || die \
+		"no dfu-util util found.  Did you 'sudo emerge dfu-util'"
+
+	info "Using dfu flasher : ${DFU_UTIL}"
+
+	dev_cnt=$(lsusb -d $DFU_DEVICE | wc -l)
+	if [ $dev_cnt -eq 0 ] ; then
+		die "unable to locate dfu device at $DFU_DEVICE"
+	elif [ $dev_cnt -ne 1 ] ; then
+		die "too many dfu devices (${dev_cnt}). Disconnect all but one."
+	fi
+
+	SIZE=$(wc -c ${IMG} | cut -d' ' -f1)
+	# Remove read protection
+	sudo $DFU_UTIL -a 0 -s ${ADDR}:${SIZE}:force:unprotect -D "${IMG}"
+	# Wait for mass-erase and reboot after unprotection
+	sleep 1
+	# Actual image flashing
+	sudo $DFU_UTIL -a 0 -s ${ADDR}:${SIZE} -D "${IMG}"
+}
+
+function flash_link() {
+	OCD_PATH="${EC_DIR}/chip/lm4/openocd"
+	setup_openocd
+
+	OCD_CMDS="init; flash_lm4 ${IMG} ${FLAGS_offset};"
+	if [ "${FLAGS_unprotect}" = ${FLAGS_TRUE} ] ; then
+		info "Clearing write protect flag."
+		OCD_CMDS="${OCD_CMDS} unprotect_link;"
+	fi
+	OCD_CMDS="${OCD_CMDS} shutdown;"
+
+	dut_control jtag_buf_on_flex_en:on
+	dut_control jtag_buf_en:on
+
+	sudo openocd -s "${OCD_PATH}" -f "${OCD_CFG}" -c "${OCD_CMDS}" || \
+	die "Failed to program ${IMG}"
+}
+
+function flash_lm4() {
+	OCD_PATH="${EC_DIR}/chip/lm4/openocd"
+	setup_openocd
+
+	OCD_CMDS="init; flash_lm4 ${IMG} ${FLAGS_offset};"
+	if [ "${FLAGS_unprotect}" = ${FLAGS_TRUE} ] ; then
+		# Unprotect exists, but isn't needed because erasing pstate is
+		# implicit in writing the entire image
+		die "--unprotect not supported for this board."
+	fi
+	OCD_CMDS="${OCD_CMDS} shutdown;"
+
+	dut_control jtag_buf_on_flex_en:on
+	dut_control jtag_buf_en:on
+
+	sudo openocd -s "${OCD_PATH}" -f "${OCD_CFG}" -c "${OCD_CMDS}" || \
+	die "Failed to program ${IMG}"
+}
+
+function flash_npcx() {
+	OCD_PATH="${EC_DIR}/chip/npcx/openocd"
+	setup_openocd
+
+	if [ "${FLAGS_unprotect}" = ${FLAGS_TRUE} ] ; then
+		# Unprotect exists, but isn't needed because erasing pstate is
+		# implicit in writing the entire image
+		die "--unprotect not supported for this board."
+	fi
+
+	dut_control jtag_buf_on_flex_en:on
+	dut_control jtag_buf_en:on
+
+	if [ "${FLAGS_ro}" = ${FLAGS_TRUE} ] ; then
+		# Program RO region only
+		OCD_CMDS="init; flash_npcx_ro ${FLAGS_offset}; shutdown;"
+		sudo openocd -s "${OCD_PATH}" -f "${OCD_CFG}" -c "${OCD_CMDS}" || \
+		die "Failed to program ${IMG}"
+	else
+		# Program all EC regions
+		OCD_CMDS="init; flash_npcx_evb ${FLAGS_offset}; shutdown;"
+		sudo openocd -s "${OCD_PATH}" -f "${OCD_CFG}" -c "${OCD_CMDS}" || \
+		die "Failed to program ${IMG}"
+	fi
+}
+
+function flash_mec1322() {
+	TOOL_PATH="${EC_DIR}/build/${BOARD}/util:/usr/sbin/:$PATH"
+	FLASHROM=$(PATH="${TOOL_PATH}" which flashrom)
+	FLASHROM_PARAM="-p ft2232_spi:type=servo-v2,port=B"
+
+	if [ ! -x "$FLASHROM" ]; then
+		die "no flashrom util found."
+	fi
+
+	dut_control cold_reset:on
+
+	# Turn on SPI1 interface on servo for 3.3V SPI Flash Chip
+	dut-control spi1_vref:pp3300 spi1_buf_en:on spi1_buf_on_flex_en:on
+
+	SPI_SIZE=$(sudo ${FLASHROM} ${FLASHROM_PARAM} --get-size 2>/dev/null | tail -n 1)
+	IMG_SIZE=$(stat -c%s "$IMG")
+	PATCH_SIZE=$((${SPI_SIZE} - ${IMG_SIZE}))
+
+	# Temp image
+	T=/tmp/flash_mec_$$
+
+	{	# Patch temp image up to SPI_SIZE
+		if [[ ${IMG_SIZE} -lt ${SPI_SIZE} ]] ; then
+			dd if=/dev/zero bs=${PATCH_SIZE} count=1 | tr '\0' '\377'
+		fi
+		cat $IMG
+	} > $T
+
+	sudo ${FLASHROM} ${FLASHROM_PARAM} -w "${T}"
+
+	rm $T
+
+	# Turn off SPI1 interface on servo
+	dut_control spi1_vref:off spi1_buf_en:off spi1_buf_on_flex_en:off
+
+	# Do not save/restore servo settings
+	save=
+}
+
+if dut_control boot_mode 2>/dev/null ; then
+	if [[ "${MCU}" != "ec" ]] ; then
+		die "Toad cable can't support non-ec UARTs"
+	fi
+	SERVO_TYPE=toad
+	info "Using a dedicated debug cable"
+fi
+
+IMG="$(ec_image)"
+info "Using ${MCU} image : ${IMG}"
+
+EC_UART="$(ec_uart)"
+info "${MCU} UART pty : ${EC_UART}"
+
+save="$(servo_save)"
+
+if ([ "${FLAGS_usb}" = ${FLAGS_TRUE} ] && \
+      ! $(in_array "${BOARDS_LM4_USB[@]}" "${BOARD}")); then
+	die "--usb not supported for this board."
+fi
+
+if $(in_array "${BOARDS_LM4[@]}" "${BOARD}"); then
+	flash_lm4
+elif $(in_array "${BOARDS_STM32[@]}" "${BOARD}"); then
+	flash_stm32
+elif $(in_array "${BOARDS_STM32_DFU[@]}" "${BOARD}"); then
+	flash_stm32_dfu
+elif [ "${BOARD}" == "link" ]; then
+	flash_link
+elif $(in_array "${BOARDS_NPCX[@]}" "${BOARD}"); then
+	flash_npcx
+elif $(in_array "${BOARDS_MEC1322[@]}" "${BOARD}"); then
+	flash_mec1322
+else
+	die "board ${BOARD} not supported"
+fi
+
+info "Flashing done."

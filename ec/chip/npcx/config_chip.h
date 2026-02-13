@@ -1,0 +1,115 @@
+/* Copyright (c) 2014 The Chromium OS Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+#ifndef __CROS_EC_CONFIG_CHIP_H
+#define __CROS_EC_CONFIG_CHIP_H
+
+/* CPU core BFD configuration */
+#include "core/cortex-m/config_core.h"
+
+/* 32k hz internal oscillator frequency (FRCLK) */
+#define INT_32K_CLOCK 32768
+
+/* Number of IRQ vectors on the NVIC */
+#define CONFIG_IRQ_COUNT 64
+
+/* Use a bigger console output buffer */
+#undef CONFIG_UART_TX_BUF_SIZE
+#define CONFIG_UART_TX_BUF_SIZE 8192
+
+/* Interval between HOOK_TICK notifications */
+#define HOOK_TICK_INTERVAL_MS 250
+#define HOOK_TICK_INTERVAL    (HOOK_TICK_INTERVAL_MS * MSEC)
+
+/* Maximum number of deferrable functions */
+#define DEFERRABLE_MAX_COUNT 8
+
+/* Number of I2C ports */
+#define I2C_PORT_COUNT 4
+
+/* Number of PWM ports */
+#define PWM_COUNT 8
+
+/*****************************************************************************/
+/* Memory mapping */
+#define CONFIG_RAM_BASE         0x200C0000 /* memory map address of data ram */
+#define CONFIG_RAM_SIZE         0x00008000 /* 32KB data ram */
+#define CONFIG_CDRAM_BASE       0x10088000 /* memory map address of code ram */
+#define CONFIG_CDRAM_SIZE       0x00020000 /* 128KB code ram */
+#define CONFIG_FLASH_BASE	0x64000000 /* memory address of spi-flash */
+#define CONFIG_LPRAM_BASE       0x40001600 /* memory address of low power ram */
+#define CONFIG_LPRAM_SIZE	0x00000620 /* 1568B low power ram */
+
+/* System stack size */
+#define CONFIG_STACK_SIZE       4096
+
+/* non-standard task stack sizes */
+#define IDLE_TASK_STACK_SIZE    512
+#define LARGER_TASK_STACK_SIZE  768
+#define SMALLER_TASK_STACK_SIZE 384
+
+/* Default task stack size */
+#define TASK_STACK_SIZE         512
+
+/* Address of RAM log used by Booter */
+#define ADDR_BOOT_RAMLOG        0x100C7FC0
+
+/* SPI Flash Spec of W25Q20CV */
+#define CONFIG_FLASH_BANK_SIZE	0x00001000  /* protect bank size 4K bytes */
+#define CONFIG_FLASH_ERASE_SIZE	0x00001000  /* sector erase size 4K bytes */
+#define CONFIG_FLASH_WRITE_SIZE	0x00000001  /* minimum write size */
+
+#define CONFIG_FLASH_WRITE_IDEAL_SIZE 256	 /* one page size for write */
+#define CONFIG_FLASH_PHYSICAL_SIZE    0x00040000 /* 256KB Flash used for EC */
+
+/* No PSTATE; uses a real SPI flash */
+#undef CONFIG_FLASH_PSTATE
+
+/****************************************************************************/
+/* Define our flash layout. */
+/* Size of one firmware image in flash */
+#ifndef CONFIG_FW_IMAGE_SIZE
+#define CONFIG_FW_IMAGE_SIZE    (CONFIG_FLASH_PHYSICAL_SIZE / 2)
+#endif
+
+/* RO firmware offset of flash */
+#define CONFIG_RO_MEM_OFF       0
+#define CONFIG_RO_STORAGE_OFF   0
+#define CONFIG_RO_SIZE          CONFIG_FW_IMAGE_SIZE
+#define CONFIG_FLASH_SIZE       CONFIG_FLASH_PHYSICAL_SIZE
+
+/* RW firmware is one firmware image offset from the start */
+#define CONFIG_RW_MEM_OFF       CONFIG_FW_IMAGE_SIZE
+#define CONFIG_RW_STORAGE_OFF   CONFIG_FW_IMAGE_SIZE
+#define CONFIG_RW_SIZE          CONFIG_FW_IMAGE_SIZE
+
+#define CONFIG_WP_OFF           CONFIG_RO_STORAGE_OFF
+#define CONFIG_WP_SIZE          CONFIG_RO_SIZE
+
+/*
+ * The offset from top of flash wich used by booter
+ * the main funcationality to copy iamge from spi-flash to code ram
+ */
+#define CONFIG_LFW_OFFSET       0x1000
+
+/****************************************************************************/
+/* Customize the build */
+
+/* Optional features present on this chip */
+#define CONFIG_ADC
+#define CONFIG_I2C
+#define CONFIG_LPC
+#define CONFIG_PECI
+#define CONFIG_SWITCH
+#define CONFIG_MPU
+#define CONFIG_SPI
+
+/* Compile for running from RAM instead of flash */
+/* #define COMPILE_FOR_RAM */
+
+#define GPIO_PIN(port, index) GPIO_##port, (1 << index)
+#define GPIO_PIN_MASK(port, mask) GPIO_##port, (mask)
+
+#endif  /* __CROS_EC_CONFIG_CHIP_H */

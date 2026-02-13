@@ -1,0 +1,44 @@
+##
+## Copyright 2013 Google Inc.  All rights reserved.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+config DRIVER_EC_CROS
+	bool "Enable support for the ChromeOS EC"
+	default n
+
+config DRIVER_EC_CROS_LPC
+	bool "ChromeOS EC LPC interface"
+	default n
+	depends on DRIVER_EC_CROS
+
+config DRIVER_EC_CROS_I2C
+	bool "ChromeOS EC I2C interface"
+	default n
+	depends on DRIVER_EC_CROS
+
+config DRIVER_EC_CROS_SPI
+	bool "ChromeOS EC SPI interface"
+	default n
+	depends on DRIVER_EC_CROS
+
+config DRIVER_EC_CROS_PASSTHRU
+	bool "Support passthru commands"
+	default n
+	depends on DRIVER_EC_CROS
+
+config DRIVER_EC_CROS_SPI_WAKEUP_DELAY_US
+	int "Delay EC transfer after asserting chip-select"
+	default 0
+	depends on DRIVER_EC_CROS_SPI

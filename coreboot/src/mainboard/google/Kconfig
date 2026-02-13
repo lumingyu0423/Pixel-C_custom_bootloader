@@ -1,0 +1,385 @@
+##
+## This file is part of the coreboot project.
+##
+## Copyright (C) 2012 The ChromiumOS Authors
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+##
+if VENDOR_GOOGLE
+
+# Auto select common options
+config VENDOR_SPECIFIC_OPTIONS
+	def_bool y
+	select CACHE_ROM
+
+choice
+	prompt "Mainboard model"
+
+config BOARD_GOOGLE_AURON
+	bool "Auron"
+	help
+	  Google Auron mainboard.
+	  Enable this config to select the Google Auron mainboard.
+	  Auron is a Chrome OS mainboard.
+	  Auron is based on the Intel Broadwell platform.
+
+config BOARD_GOOGLE_BELTINO
+	bool "Beltino"
+	help
+	  Google Beltino mainboard.
+	  Enable this config to select the Google Beltino mainboard.
+	  Beltino is a Chrome OS mainboard.
+	  Beltino is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_BOLT
+	bool "Bolt"
+	help
+	  Google Bolt mainboard.
+	  Enable this config to select the Google Bolt mainboard.
+	  Bolt is a Chrome OS mainboard.
+	  Bolt is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_BUTTERFLY
+	bool "Butterfly"
+	help
+	  Google Butterfly mainboard.
+	  Enable this config to select the Google Butterfly mainboard.
+	  Butterfly is a Chrome OS mainboard.
+	  Butterfly is based on the Intel Sandy Bridge platform.
+
+config BOARD_GOOGLE_COSMOS
+	bool "Cosmos"
+	help
+	  Google Cosmos mainboard.
+	  Enable this config to select the Google Cosmos mainboard.
+	  Cosmos is a Chrome OS mainboard.
+	  Cosmos is based on the Marvell BG4CD platform.
+
+config BOARD_GOOGLE_CYAN
+	bool "Cyan"
+	help
+	  Google Cyan mainboard.
+	  Enable this config to select the Google Cyan mainboard.
+	  Cyan is a Chrome OS mainboard.
+	  Cyan is based on the Intel Braswell platform.
+
+config BOARD_GOOGLE_DAISY
+	bool "Daisy"
+	help
+	  Google Daisy mainboard.
+	  Enable this config to select the Google Daisy mainboard.
+	  Daisy is a Chrome OS mainboard.
+	  Daisy is based on the Samsung Exynos 5250 platform.
+
+config BOARD_GOOGLE_FALCO
+	bool "Falco"
+	help
+	  Google Falco mainboard.
+	  Enable this config to select the Google Falco mainboard.
+	  Falco is a Chrome OS mainboard.
+	  Falco is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_FOSTER
+	bool "Foster"
+	help
+	  Google Foster mainboard.
+	  Enable this config to select the Google Foster mainboard.
+	  Foster is a Chrome OS mainboard.
+	  Foster is based on the Nvidia Tegra210 platform.
+
+config BOARD_GOOGLE_GLADOS
+	bool "Glados"
+	help
+	  Google Glados mainboard.
+	  Enable this config to select the Google Glados mainboard.
+	  Glados is a Chrome OS reference board.
+	  Glados is based on the Intel Skylake platform.
+
+config BOARD_GOOGLE_JECHT
+        bool "Jecht"
+        help
+          Google Jecht mainboard.
+          Enable this config to select the Google Jecht mainboard.
+          Jecht is a Chrome OS mainboard.
+          Jecht is based on the Intel Broadwell platform.
+
+config BOARD_GOOGLE_LINK
+	bool "Link"
+	help
+	  Google Link mainboard.
+	  Enable this config to select the Google Link mainboard.
+	  Link is a Chrome OS mainboard.
+	  Link is based on the Intel Ivy Bridge platform.
+
+config BOARD_GOOGLE_NYAN
+	bool "Nyan"
+	help
+	  Google Nyan mainboard.
+	  Enable this config to select the Google Nyan mainboard.
+	  Nyan is a Chrome OS mainboard.
+	  Nyan is based on the Nvidia Tegra 124 platform.
+
+config BOARD_GOOGLE_NYAN_BIG
+	bool "Nyan Big"
+	help
+	  Google Nyan Big mainboard.
+	  Enable this config to select the Google Nyan Big mainboard.
+	  Nyan Big is a Chrome OS mainboard.
+	  Nyan Big is based on the Nvidia Tegra 124 platform.
+
+config BOARD_GOOGLE_NYAN_BLAZE
+	bool "Nyan Blaze"
+	help
+	  Google Nyan Blaze mainboard.
+	  Enable this config to select the Google Nyan Blaze mainboard.
+	  Nyan Blaze is a Chrome OS mainboard.
+	  Nyan Blaze is based on the Nvidia Tegra 124 platform.
+
+config BOARD_GOOGLE_PANTHER
+	bool "Panther"
+	help
+	  Google Panther mainboard.
+	  Enable this config to select the Google Panther mainboard.
+	  Panther is a Chrome OS mainboard.
+	  Panther is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_PARROT
+	bool "Parrot"
+	help
+	  Google Parrot mainboard.
+	  Enable this config to select the Google Parrot mainboard.
+	  Parrot is a Chrome OS mainboard.
+	  Parrot is based on the Intel Ivy Bridge platform.
+
+config BOARD_GOOGLE_PEACH_PIT
+	bool "Peach Pit"
+	help
+	  Google Peach Pit mainboard.
+	  Enable this config to select the Google Peach Pit mainboard.
+	  Peach Pit is a Chrome OS mainboard.
+	  Peach Pit is based on the Samsung Exynos 5420 platform.
+
+config BOARD_GOOGLE_PEPPY
+	bool "Peppy"
+	help
+	  Google Peppy mainboard.
+	  Enable this config to select the Google Peppy mainboard.
+	  Peppy is a Chrome OS mainboard.
+	  Peppy is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_PURIN
+	bool "Purin"
+	help
+	  Google Purin mainboard.
+	  Enable this config to select the Google Purin mainboard.
+	  Purin is a Chrome OS mainboard.
+	  Purin is based on the Broadcom Cygnus platform.
+
+config BOARD_GOOGLE_RAMBI
+	bool "Rambi"
+	help
+	  Google Rambi mainboard.
+	  Enable this config to select the Google Rambi mainboard.
+	  Rambi is a Chrome OS mainboard.
+	  Rambi is based on the Intel Baytrail platform.
+
+config BOARD_GOOGLE_RUSH
+	bool "Rush"
+	help
+	  Google Rush mainboard.
+	  Enable this config to select the Google Rush mainboard.
+	  Rush is a Chrome OS mainboard.
+	  Rush is based on the Nvidia Tegra 132 platform.
+
+config BOARD_GOOGLE_RUSH_RYU
+	bool "Rush Ryu"
+	help
+	  Google Ryu mainboard.
+	  Enable this config to select the Google Ryu mainboard.
+	  Ryu is a Chrome OS mainboard.
+	  Ryu is based on the Nvidia Tegra 132 platform.
+
+config BOARD_GOOGLE_SAMUS
+	bool "Samus"
+	help
+	  Google Saums mainboard.
+	  Enable this config to select the Google Samus mainboard.
+	  Samus is a Chrome OS mainboard.
+	  Samus is based on the Intel Broadwell platform.
+
+config BOARD_GOOGLE_SLIPPY
+	bool "Slippy"
+	help
+	  Google Slippy mainboard.
+	  Enable this config to select the Google Slippy mainboard.
+	  Slippy is a Chrome OS mainboard.
+	  Slippy is based on the Intel Haswell platform.
+
+config BOARD_GOOGLE_SMAUG
+	bool "Smaug"
+	help
+	  Google Smaug mainboard.
+	  Enable this config to select the Google Smaug mainboard.
+	  Smaug is a Chrome OS mainboard.
+	  Smaug is based on the Nvidia Tegra 210 platform.
+
+config BOARD_GOOGLE_STORM
+	bool "Storm"
+	help
+	  Google Storm mainboard.
+	  Enable this config to select the Google Storm mainboard.
+	  Storm is a Chrome OS mainboard.
+	  Storm is based on the Qualcomm IPQ806X platform.
+
+config BOARD_GOOGLE_STOUT
+	bool "Stout"
+	help
+	  Google Stout mainboard.
+	  Enable this config to select the Google Stout mainboard.
+	  Stout is a Chrome OS mainboard.
+	  Stout is based on the Intel Ivy Bridge platform.
+
+config BOARD_GOOGLE_URARA
+	bool "Urara"
+	help
+	  Google Urara mainboard.
+	  Urara is an embedded device running on MIPS platorm
+	  based on the Pistachio SOC.
+
+config BOARD_GOOGLE_VEYRON_BRAIN
+	bool "Veyron_Brain"
+	help
+	  Google Veyron_Brain mainboard.
+	  Enable this config to select the Google Veyron_Brain mainboard.
+	  Veyron_Brain is a Chrome OS mainboard.
+	  Veyron_Brain is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_DANGER
+	bool "Veyron_Danger"
+	help
+	  Google Veyron_Danger mainboard.
+	  Enable this config to select the Google Veyron_Danger mainboard.
+	  Veyron_Danger is a Chrome OS mainboard.
+	  Veyron_Danger is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_JERRY
+	bool "Veyron_Jerry"
+	help
+	  Google Veyron_Jerry mainboard.
+	  Enable this config to select the Google Veyron_Jerry mainboard.
+	  Veyron_Jerry is a Chrome OS mainboard.
+	  Veyron_Jerry is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_MICKEY
+	bool "Veyron_Mickey"
+	help
+	  Google Veyron_Mickey mainboard.
+	  Enable this config to select the Google Veyron_Mickey mainboard.
+	  Veyron_Mickey is a Chrome OS mainboard.
+	  Veyron_Mickey is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_MIGHTY
+	bool "Veyron_Mighty"
+	help
+	  Google Veyron_Mighty mainboard.
+	  Enable this config to select the Google Veyron_Mighty mainboard.
+	  Veyron_Mighty is a Chrome OS mainboard.
+	  Veyron_Mighty is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_PINKY
+	bool "Veyron_Pinky"
+	help
+	  Google Veyron_Pinky mainboard.
+	  Enable this config to select the Google Veyron_Pinky mainboard.
+	  Veyron_Pinky is a Chrome OS mainboard.
+	  Veyron_Pinky is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_RIALTO
+        bool "Veyron_Rialto"
+	help
+	  Google Veyron_Rialto mainboard.
+	  Enable this config to select the Google Veyron_Rialto mainboard.
+	  Veyron_Rialto is a Chrome OS mainboard.
+	  Veyron_Rialto is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_ROMY
+	bool "Veyron_Romy"
+	help
+	  Google Veyron_Romy mainboard.
+	  Enable this config to select the Google Veyron_Romy mainboard.
+	  Veyron_Romy is a Chrome OS mainboard.
+	  Veyron_Romy is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_SHARK
+	bool "Veyron_Shark"
+	help
+	  Google Veyron_Shark mainboard.
+	  Enable this config to select the Google Veyron_Shark mainboard.
+	  Veyron_Shark is a Chrome OS mainboard.
+	  Veyron_Shark is based on the Rockchip RK3288 platform.
+
+config BOARD_GOOGLE_VEYRON_SPEEDY
+	bool "Veyron_Speedy"
+	help
+	  Google Veyron_Speedy mainboard.
+	  Enable this config to select the Google Veyron_Speedy mainboard.
+	  Veyron_Speedy is a Chrome OS mainboard.
+	  Veyron_Speedy is based on the Rockchip RK3288 platform.
+endchoice
+
+source "src/mainboard/google/auron/Kconfig"
+source "src/mainboard/google/beltino/Kconfig"
+source "src/mainboard/google/bolt/Kconfig"
+source "src/mainboard/google/butterfly/Kconfig"
+source "src/mainboard/google/cosmos/Kconfig"
+source "src/mainboard/google/cyan/Kconfig"
+source "src/mainboard/google/daisy/Kconfig"
+source "src/mainboard/google/falco/Kconfig"
+source "src/mainboard/google/foster/Kconfig"
+source "src/mainboard/google/glados/Kconfig"
+source "src/mainboard/google/jecht/Kconfig"
+source "src/mainboard/google/link/Kconfig"
+source "src/mainboard/google/nyan/Kconfig"
+source "src/mainboard/google/nyan_big/Kconfig"
+source "src/mainboard/google/nyan_blaze/Kconfig"
+source "src/mainboard/google/panther/Kconfig"
+source "src/mainboard/google/parrot/Kconfig"
+source "src/mainboard/google/peach_pit/Kconfig"
+source "src/mainboard/google/peppy/Kconfig"
+source "src/mainboard/google/purin/Kconfig"
+source "src/mainboard/google/rambi/Kconfig"
+source "src/mainboard/google/rush/Kconfig"
+source "src/mainboard/google/rush_ryu/Kconfig"
+source "src/mainboard/google/samus/Kconfig"
+source "src/mainboard/google/slippy/Kconfig"
+source "src/mainboard/google/smaug/Kconfig"
+source "src/mainboard/google/storm/Kconfig"
+source "src/mainboard/google/stout/Kconfig"
+source "src/mainboard/google/urara/Kconfig"
+source "src/mainboard/google/veyron_brain/Kconfig"
+source "src/mainboard/google/veyron_danger/Kconfig"
+source "src/mainboard/google/veyron_jerry/Kconfig"
+source "src/mainboard/google/veyron_mickey/Kconfig"
+source "src/mainboard/google/veyron_mighty/Kconfig"
+source "src/mainboard/google/veyron_pinky/Kconfig"
+source "src/mainboard/google/veyron_rialto/Kconfig"
+source "src/mainboard/google/veyron_romy/Kconfig"
+source "src/mainboard/google/veyron_shark/Kconfig"
+source "src/mainboard/google/veyron_speedy/Kconfig"
+
+config MAINBOARD_VENDOR
+	string "Mainboard Vendor"
+	default "GOOGLE"
+
+endif # VENDOR_GOOGLE

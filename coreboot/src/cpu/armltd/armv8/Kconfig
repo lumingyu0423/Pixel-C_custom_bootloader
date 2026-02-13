@@ -1,0 +1,10 @@
+config CPU_ARMLTD_ARMV8
+	bool
+	select ARCH_AARCH64
+	select EARLY_CONSOLE
+	default n
+
+if CPU_ARMLTD_ARMV8
+
+endif
+

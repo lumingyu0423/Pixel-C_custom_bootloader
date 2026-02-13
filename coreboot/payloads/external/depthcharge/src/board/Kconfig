@@ -1,0 +1,121 @@
+##
+## Copyright 2013 Google Inc.  All rights reserved.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+menu "Board"
+
+config BOARD
+	string "Board name"
+
+if BOARD = "auron"
+source src/board/auron/Kconfig
+endif
+if BOARD = "bayleybay"
+source src/board/bayleybay/Kconfig
+endif
+if BOARD = "bolt"
+source src/board/bolt/Kconfig
+endif
+if BOARD = "cyan"
+source src/board/cyan/Kconfig
+endif
+if BOARD = "daisy"
+source src/board/daisy/Kconfig
+endif
+if BOARD = "falco"
+source src/board/falco/Kconfig
+endif
+if BOARD = "foster"
+source src/board/foster/Kconfig
+endif
+if BOARD = "gizmo"
+source src/board/gizmo/Kconfig
+endif
+if BOARD = "glados"
+source src/board/glados/Kconfig
+endif
+if BOARD = "jecht"
+source src/board/jecht/Kconfig
+endif
+if BOARD = "link"
+source src/board/link/Kconfig
+endif
+if BOARD = "nyan"
+source src/board/nyan/Kconfig
+endif
+if BOARD = "nyan_big"
+source src/board/nyan_big/Kconfig
+endif
+if BOARD = "nyan_blaze"
+source src/board/nyan_blaze/Kconfig
+endif
+if BOARD = "oak"
+source src/board/oak/Kconfig
+endif
+if BOARD = "panther"
+source src/board/panther/Kconfig
+endif
+if BOARD = "peach_pit"
+source src/board/peach_pit/Kconfig
+endif
+if BOARD = "peppy"
+source src/board/peppy/Kconfig
+endif
+if BOARD = "rambi"
+source src/board/rambi/Kconfig
+endif
+if BOARD = "rush"
+source src/board/rush/Kconfig
+endif
+if BOARD = "rush_ryu"
+source src/board/rush_ryu/Kconfig
+endif
+if BOARD = "samus"
+source src/board/samus/Kconfig
+endif
+if BOARD = "slippy"
+source src/board/slippy/Kconfig
+endif
+if BOARD = "smaug"
+source src/board/smaug/Kconfig
+endif
+if BOARD = "storm"
+source src/board/storm/Kconfig
+endif
+if BOARD = "strago"
+source src/board/strago/Kconfig
+endif
+if BOARD = "urara"
+source src/board/urara/Kconfig
+endif
+if BOARD = "veyron_jerry"
+source src/board/veyron_jerry/Kconfig
+endif
+if BOARD = "veyron_mighty"
+source src/board/veyron_mighty/Kconfig
+endif
+if BOARD = "veyron_pinky"
+source src/board/veyron_pinky/Kconfig
+endif
+if BOARD = "veyron_rialto"
+source src/board/veyron_rialto/Kconfig
+endif
+if BOARD = "veyron_shark"
+source src/board/veyron_shark/Kconfig
+endif
+if BOARD = "veyron_speedy"
+source src/board/veyron_speedy/Kconfig
+endif
+endmenu

@@ -1,0 +1,76 @@
+##
+## Copyright 2013 Google Inc.  All rights reserved.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; version 2 of the License.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+config DRIVER_AHCI
+	bool "AHCI driver"
+	default n
+
+config DRIVER_STORAGE_MMC
+	bool "Board-specific SD/MMC storage Driver"
+	default n
+        help
+          For platforms with SD/MMC card readers not on USB bus.
+
+config DRIVER_STORAGE_MSHC_S5P
+	depends on  DRIVER_STORAGE_MMC
+	bool "S5P MSHC/MMC driver"
+	default n
+
+config DRIVER_STORAGE_MMC_DW
+	depends on DRIVER_STORAGE_MMC
+	bool "DesignWare MMC driver"
+	default n
+
+config DRIVER_STORAGE_MMC_DW_EXYNOS
+	depends on DRIVER_STORAGE_MMC_DW
+	bool "DesignWare MMC driver for Exynos"
+	default n
+
+config DRIVER_STORAGE_IPQ_806X
+	depends on DRIVER_STORAGE_MMC
+	bool "Qualcomm MMC driver"
+	default n
+
+config DRIVER_STORAGE_MMC_TEGRA
+	depends on DRIVER_STORAGE_MMC
+	bool "NVIDIA Tegra MMC driver"
+	default n
+
+config DRIVER_SDHCI
+	depends on DRIVER_STORAGE_MMC
+	bool "SDHCI specification compliant eMMC/SD driver"
+	default n
+
+config DRIVER_STORAGE_SDHCI_PCI
+	depends on ARCH_X86
+	depends on DRIVER_SDHCI
+	bool "PCI SDHCI based eMMC/SD driver"
+	default n
+
+config DRIVER_STORAGE_MMC_ROCKCHIP
+        select DRIVER_STORAGE_MMC_DW
+        bool "ROCKCHIP MMC driver"
+        default n
+
+config DRIVER_STORAGE_SPI_GPT
+	bool "Look up a kernel partition from a GPT on SPI"
+	default n
+
+config DRIVER_STORAGE_NVME
+	bool "NVMe driver"
+	default n
+
+source src/drivers/storage/mtd/Kconfig
