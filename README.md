@@ -1,6 +1,8 @@
 # Pixel-C_custom_bootloader
 custom bootloader for google Pixel C
 
+[HOW TO MAKE](./HOW-TO-MAKE.md)
+
 ## Boot flow - normal
 Boot normal A | B .
     ![image](boot-normal.png)
