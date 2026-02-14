@@ -37,7 +37,26 @@ ARCHDIR-$(CONFIG_LP_ARCH_MIPS)    := mips
 ARCHDIR-$(CONFIG_LP_ARCH_X86)     := x86
 DESTDIR ?= install
 
-real-target: lib
+real-target: lib post-build
+
+# After building, set up the directory layout that lpgcc/depthcharge expect:
+#   - lib/                         : .a libraries + ldscript (lpgcc looks for ../lib/)
+#   - lib/$(ARCHDIR-y)/head.o      : arch-specific head.o
+#   - include/libpayload-config.h  : C header version of .config (from kconfig autoheader)
+#   - libpayload.config            : shell-sourceable copy of $(DOTCONFIG) in libpayload root
+#   - libpayload.xcompile          : copy of .xcompile so depthcharge can find toolchain defs
+post-build: lib
+	@printf "    INSTALL    lib/\n"
+	$(Q)mkdir -p lib/$(ARCHDIR-y)
+	$(Q)for f in $(library-targets); do cp -f $$f lib/; done
+	$(Q)cp -f arch/$(ARCHDIR-y)/libpayload.ldscript lib/
+	$(Q)cp -f $(obj)/head.o lib/$(ARCHDIR-y)/
+	@printf "    CONFIG     include/libpayload-config.h\n"
+	$(Q)cp -f $(obj)/libpayload-config.h include/libpayload-config.h
+	@printf "    CONFIG     libpayload.config\n"
+	$(Q)cp -f $(DOTCONFIG) libpayload.config
+	@printf "    CONFIG     libpayload.xcompile\n"
+	$(Q)cp -f .xcompile libpayload.xcompile
 
 classes-$(CONFIG_LP_PCI) += libpci
 classes-$(CONFIG_LP_LIBC) += libc
@@ -129,4 +148,5 @@ clean-for-update-target:
 	rm -f $(addsuffix .a,$(addprefix $(obj)/,$(libraries))) $(obj)/libpayload.a
 
 clean-target:
+	rm -rf lib include/libpayload-config.h libpayload.config libpayload.xcompile
 prepare:

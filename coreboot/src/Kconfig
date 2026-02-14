@@ -733,6 +733,11 @@ config PAYLOAD_TIANOCORE
 
 	  See http://coreboot.org/Payloads for more information.
 
+config PAYLOAD_DEPTHCHARGE
+	bool "depthcharge"
+	help
+	  depthcharge.
+
 endchoice
 
 choice

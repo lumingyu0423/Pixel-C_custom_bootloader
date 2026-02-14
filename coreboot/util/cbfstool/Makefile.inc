@@ -46,7 +46,7 @@ TOOLCFLAGS += -std=c99 -Werror -Wall -Wextra
 TOOLCFLAGS += -Wcast-qual -Wmissing-prototypes -Wredundant-decls -Wshadow
 TOOLCFLAGS += -Wstrict-prototypes -Wwrite-strings
 TOOLCPPFLAGS := -D_POSIX_C_SOURCE=200809L # strdup() from string.h
-TOOLCPPFLAGS += -D_SVID_SOURCE # memccpy() from string.h
+TOOLCPPFLAGS += -D_DEFAULT_SOURCE # memccpy() from string.h
 TOOLCPPFLAGS += -D_7ZIP_ST
 TOOLCPPFLAGS += -I$(top)/util/cbfstool/flashmap
 TOOLLINKFLAGS := -g3

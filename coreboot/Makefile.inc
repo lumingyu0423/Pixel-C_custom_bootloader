@@ -67,16 +67,14 @@ $(foreach supported_arch,$(ARCH_SUPPORTED), \
 	  $(eval $(call define_class,rmodules_$(ARCH_TO_TOOLCHAIN_$(supported_arch)),$(ARCH_TO_TOOLCHAIN_$(supported_arch)))))
 #######################################################################
 # Helper functions for ramstage postprocess
-spc :=
-spc +=
-$(spc) :=
-$(spc) +=
+# Define a single space character (compatible with GNU Make 4.4+)
+spc := $(subst x, ,x)
 
 # files-in-dir-recursive,dir,files
 files-in-dir-recursive=$(filter $(1)%,$(2))
 
 # parent-dir,dir/
-parent-dir=$(dir $(subst $( ),/,$(strip $(subst /, ,$(1)))))
+parent-dir=$(dir $(subst $(spc),/,$(strip $(subst /, ,$(1)))))
 
 # filters out exactly the directory specified
 # filter-out-dir,dir_to_keep,dirs
@@ -454,8 +452,13 @@ ifeq ($(CONFIG_PAYLOAD_NONE),y)
 	@printf "    PAYLOAD    none (as specified by user)\n"
 endif
 ifeq ($(CONFIG_PAYLOAD_ELF),y)
+ifeq ($(CONFIG_BOARD_GOOGLE_SMAUG),y)
+	@printf "    PAYLOAD    $(CONFIG_PAYLOAD_FILE)\n"
+	$(CBFSTOOL) $@.tmp add -f $(CONFIG_PAYLOAD_FILE) -n $(CONFIG_CBFS_PREFIX)/payload -t payload
+else
 	@printf "    PAYLOAD    $(CONFIG_PAYLOAD_FILE) (compression: $(CBFS_PAYLOAD_COMPRESS_FLAG))\n"
 	$(CBFSTOOL) $@.tmp add-payload -f $(CONFIG_PAYLOAD_FILE) -n $(CONFIG_CBFS_PREFIX)/payload -c $(CBFS_PAYLOAD_COMPRESS_FLAG)
+endif
 endif
 ifeq ($(CONFIG_PAYLOAD_LINUX),y)
 	@printf "    PAYLOAD    $(CONFIG_PAYLOAD_FILE) (compression: $(CBFS_PAYLOAD_COMPRESS_FLAG))\n"
@@ -495,9 +498,17 @@ ifeq ($(CONFIG_CPU_MICROCODE_IN_CBFS),y)
 	$(CBFSTOOL) $@.tmp update-fit -n cpu_microcode_blob.bin -x $(CONFIG_CPU_INTEL_NUM_FIT_ENTRIES)
 endif
 endif
+ifeq ($(CONFIG_BOARD_GOOGLE_SMAUG),y)
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/arrow_down.bmp -n arrow_down.bmp -t raw
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/arrow_up.bmp -n arrow_up.bmp -t raw
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/splash.bmp -n splash.bmp -t raw
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/u-boot.dtb -n u-boot.dtb -t mrc_cache
+endif
 	mv $@.tmp $@
 	@printf "    CBFSPRINT  $(subst $(obj)/,,$(@))\n\n"
 	$(CBFSTOOL) $@ print
+	dd if=$@ of=test.bin bs=4096 count=743 skip=25
+	dd conv=notrunc if=test.bin of=only-ro_test_smaug.7132.295.0.bin bs=4096 seek=25
 
 ifeq ($(CONFIG_ARCH_ROMSTAGE_X86_32),y)
 ROMSTAGE_ELF := romstage_xip.elf

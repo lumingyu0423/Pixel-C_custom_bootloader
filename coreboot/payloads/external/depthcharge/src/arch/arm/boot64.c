@@ -161,6 +161,10 @@ int boot_arm_linux(void *fdt, FitImageNode *kernel)
 
 	printf("jumping to kernel\n");
 
+	register u64 x0 __asm__ ("x0");
+	__asm__ ("mrs x0, CurrentEL;" : : : "%x0");
+	printf("\nEL = %llu\n", (unsigned long long)(x0 >> 2));
+
 	timestamp_add_now(TS_START_KERNEL);
 
 	/* Flush dcache and icache to make loaded code visible. */

@@ -64,6 +64,7 @@ OBJCOPY_$(1) := $(OBJCOPY_$(2))
 OBJDUMP_$(1) := $(OBJDUMP_$(2))
 STRIP_$(1) := $(STRIP_$(2))
 READELF_$(1) := $(READELF_$(2))
+CROSS_COMPILE_$(1) := $(CROSS_COMPILE_$(2))
 INCLUDES_$(1) = $$(INCLUDES) -Isrc/arch/$(ARCHDIR-$(2))/include
 CFLAGS_$(1) = $$(CFLAGS_common) $$(INCLUDES_$(1)) $(CFLAGS_$(2))
 LIBGCC_FILE_NAME_$(1) = $(shell test -n "$(CC_$(2))" && \

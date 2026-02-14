@@ -7,7 +7,7 @@ CFLAGS += -std=c99 -Werror -Wall -Wextra
 CFLAGS += -Wcast-qual -Wmissing-prototypes -Wredundant-decls -Wshadow
 CFLAGS += -Wstrict-prototypes -Wwrite-strings
 CPPFLAGS += -D_POSIX_C_SOURCE=200809L # strdup() from string.h
-CPPFLAGS += -D_SVID_SOURCE # memccpy() from string.h
+CPPFLAGS += -D_DEFAULT_SOURCE # memccpy() from string.h
 CPPFLAGS += -D_7ZIP_ST
 CPPFLAGS += -Iflashmap
 LINKFLAGS += -g3

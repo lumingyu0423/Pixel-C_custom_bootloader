@@ -76,14 +76,6 @@ testas() {
 
 	fi
 
-	# Special parameters only available in dash_twidth mode.
-	[ -n "$use_dash_twidth" ] && case "$full_arch" in
-		"elf32-i386" )
-			LDFLAGS="$LDFLAGS -melf_i386"
-			CFLAGS="$CFLAGS -Wl,-b,elf32-i386 -Wl,-melf_i386"
-			;;
-	esac
-
 	return 0
 }
 
@@ -106,19 +98,8 @@ detect_special_flags() {
 		CFLAGS="$CFLAGS -Wl,--build-id=none"
 
 	case "$architecture" in
-	x86 )
-		# Always build for i686 -- no sse/mmx instructions since SMM
-		# modules are compiled using these flags. Note that this
-		# doesn't prevent a project using xcompile to explicitly
-		# specify -mmsse, etc flags.
-		CFLAGS="$CFLAGS  -march=i686"
-		;;
 	arm )
 		testcc "$CC" "$CFLAGS" && CFLAGS="$CFLAGS"
-		;;
-	mipsel )
-		testcc "$CC" "$CFLAGS -mno-abicalls -fno-pic" && \
-                  CFLAGS+=" -mno-abicalls -fno-pic"
 		;;
 	esac
 }
@@ -145,13 +126,13 @@ TMPFILE="$(mktemp /tmp/temp.XXXX 2>/dev/null || echo /tmp/temp.78gOIUGz)"
 touch "$TMPFILE"
 trap clean_up EXIT
 
-# Architecture definition
-SUPPORTED_ARCHITECTURE="x86 arm aarch64 mipsel"
+# Architecture definition (only ARM and AARCH64 are needed)
+SUPPORTED_ARCHITECTURE="arm aarch64"
 
 # ARM Architecture
 TARCH_arm="arm"
 TBFDARCH_arm="littlearm"
-TCLIST_arm="armv7a"
+TCLIST_arm="armv7a arm"
 TWIDTH_arm="32"
 
 # AARCH64 Architecture
@@ -160,22 +141,62 @@ TBFDARCH_aarch64="littleaarch64"
 TCLIST_aarch64="aarch64"
 TWIDTH_aarch64="64"
 
-# X86 Architecture
-TARCH_x86="i386"
-TBFDARCH_x86="i386"
-TCLIST_x86="i386 x86_64"
-TWIDTH_x86="32"
-XGCCPATH=${1:-"`pwd`/util/crossgcc/xgcc/bin/"}
+# Base path for cross-compiler toolchains
+XGCCPATH=${1:-"`pwd`/util/crossgcc/xgcc/"}
 
-# MIPS Architecture (Little Endian)
-TARCH_mipsel="mipsel"
-TBFDARCH_mipsel="tradlittlemips littlemips"
-TCLIST_mipsel="mipsel"
-TWIDTH_mipsel="32"
+# Linaro GCC toolchain bin directories
+LINARO_ARM_BIN="${XGCCPATH}gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin/"
+LINARO_AARCH64_BIN="${XGCCPATH}gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin/"
+
+# Derive crossgcc Makefile directory from XGCCPATH (strip trailing xgcc/)
+CROSSGCC_DIR="$(dirname "${XGCCPATH%/}")"
+
+# Flag to avoid redundant download attempts
+DOWNLOAD_ATTEMPTED=0
+
+# Function: search for a toolchain for the current architecture.
+# Uses global variables: GCCPREFIX, TBFDARCHS, TCLIST, TWIDTH, XGCCPATH,
+#                        LINARO_ARM_BIN, LINARO_AARCH64_BIN
+# Sets global: GCCPREFIX, TBFDARCH (needed by report_arch_toolchain)
+search_toolchain() {
+	local architecture="$1"
+	GCCPREFIX="invalid"
+
+	local search="$(eval echo \$CROSS_COMPILE_$architecture 2>/dev/null)"
+	search="$search $CROSS_COMPILE"
+
+	# Add Linaro-specific toolchain paths first (highest priority)
+	case "$architecture" in
+		arm)
+			search="$search ${LINARO_ARM_BIN}arm-eabi-"
+			;;
+		aarch64)
+			search="$search ${LINARO_AARCH64_BIN}aarch64-elf-"
+			;;
+	esac
+
+	# Add generic search paths
+	for toolchain in $TCLIST; do
+		search="$search ${XGCCPATH}bin/$toolchain-elf-"
+		search="$search $toolchain-elf-"
+		search="$search ${XGCCPATH}bin/$toolchain-eabi-"
+		search="$search $toolchain-eabi-"
+	done
+	echo "# $architecture TARCH_SEARCH=$search"
+
+	# Search toolchain by checking assembler capability.
+	for TBFDARCH in $TBFDARCHS; do
+		for gccprefixes in $search ""; do
+			program_exists "${gccprefixes}as" || continue
+			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "" && break
+			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "TRUE" && break
+		done
+		[ "$GCCPREFIX" = "invalid" ] || break
+	done
+}
 
 # This loops over all supported architectures.
 for architecture in $SUPPORTED_ARCHITECTURE; do
-	GCCPREFIX="invalid"
 	TARCH="$(eval echo \$TARCH_$architecture)"
 	TBFDARCHS="$(eval echo \$TBFDARCH_$architecture)"
 	TCLIST="$(eval echo \$TCLIST_$architecture)"
@@ -183,29 +204,27 @@ for architecture in $SUPPORTED_ARCHITECTURE; do
 	[ -z "$TARCH" -o -z "$TCLIST" -o -z "$TWIDTH" ] &&
 		die "Missing architecture definition for $architecture."
 
-	# To override toolchain, define CROSS_COMPILE_$arch or CROSS_COMPILE as
-	# environment variable.
-	# Ex: CROSS_COMPILE_arm="armv7a-cros-linux-gnueabi-"
-	#     CROSS_COMPILE_x86="i686-pc-linux-gnu-"
-	search="$(eval echo \$CROSS_COMPILE_$architecture 2>/dev/null)"
-	search="$search $CROSS_COMPILE"
-	for toolchain in $TCLIST; do
-		search="$search $XGCCPATH$toolchain-elf-"
-		search="$search $toolchain-elf-"
-		search="$search $XGCCPATH$toolchain-eabi-"
-		search="$search $toolchain-eabi-"
-	done
-	echo "# $architecture TARCH_SEARCH=$search"
+	# First attempt to find the toolchain
+	search_toolchain "$architecture"
 
-	# Search toolchain by checking assembler capability.
-        for TBFDARCH in $TBFDARCHS; do
-		for gccprefixes in $search ""; do
-			program_exists "${gccprefixes}as" || continue
-			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "" && break
-			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "TRUE" && break
-		done
-                [ "$GCCPREFIX" = "invalid" ] || break
-	done
+	# If not found, try to download via crossgcc Makefile and retry
+	if [ "$GCCPREFIX" = "invalid" ]; then
+		if [ "$DOWNLOAD_ATTEMPTED" -eq 0 ] && [ -f "${CROSSGCC_DIR}/Makefile" ]; then
+			echo "No suitable GCC for $architecture. Downloading Linaro toolchain..." >&2
+			make -C "${CROSSGCC_DIR}" >&2
+			if [ $? -eq 0 ]; then
+				DOWNLOAD_ATTEMPTED=1
+				echo "Download complete. Retrying toolchain search for $architecture..." >&2
+				search_toolchain "$architecture"
+			else
+				echo "ERROR: Failed to download toolchain." >&2
+			fi
+		elif [ "$DOWNLOAD_ATTEMPTED" -eq 1 ]; then
+			# Already downloaded once, just retry (covers second arch after download)
+			echo "Retrying toolchain search for $architecture after previous download..." >&2
+			search_toolchain "$architecture"
+		fi
+	fi
 
 	if [ "$GCCPREFIX" = "invalid" ]; then
 		echo "Warning: no suitable GCC for $architecture." >&2
@@ -217,11 +236,7 @@ for architecture in $SUPPORTED_ARCHITECTURE; do
 	report_arch_toolchain
 done
 
-if [ "$(${XGCCPATH}/iasl 2>/dev/null | grep -c ACPI)" -gt 0 ]; then
-	IASL=${XGCCPATH}iasl
-else
-	IASL=iasl
-fi
+IASL=iasl
 
 if program_exists gcc; then
 	HOSTCC=gcc

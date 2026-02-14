@@ -17,9 +17,6 @@
 
 depthcharge-y += fmap.c
 depthcharge-y += index.c
-readonly-y += startrw.c
-
-trampoline-y += load_elf.c
 
 # These options are passed from .config to the linker script. When making
 # changes, update Kconfig as well.

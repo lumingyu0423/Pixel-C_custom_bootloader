@@ -342,6 +342,9 @@ int board_allow_unlock(void)
 	/* In case of any failure below, do not allow unlock. */
 	allow_unlock = 0;
 
+	BlockDev *bdev = NULL;
+	GptData *gpt = NULL;
+
 	/* Get blockdev ctrlr. */
 	BlockDevCtrlr *bdev_ctrlr = fb_bdev_list[MMC_BDEV].bdev_ctrlr;
 	if (bdev_ctrlr == NULL)
@@ -349,7 +352,7 @@ int board_allow_unlock(void)
 
 	/* Get all fixed block devices. */
 	ListNode *devs;
-	BlockDev *bdev = NULL, *temp;
+	BlockDev *temp;
 	int count = get_all_bdevs(BLOCKDEV_FIXED, &devs);
 
 	if (count == 0)
@@ -367,7 +370,7 @@ int board_allow_unlock(void)
 		goto fail;
 
 	/* Allocate GPT data. */
-	GptData *gpt = alloc_gpt(bdev);
+	gpt = alloc_gpt(bdev);
 	if (gpt == NULL)
 		goto fail;
 

@@ -58,14 +58,28 @@ HOSTCXX = g++
 HOSTCFLAGS := -I$(srck) -I$(objk)
 HOSTCXXFLAGS := -I$(srck) -I$(objk)
 
-ifdef LIBPAYLOAD_DIR
+LIBPAYLOAD_DIR ?= $(src)/../../libpayload
+
 # libpayload's xcompile script checks for this config flag to decide which
 # compiler to use
 CONFIG_LP_COMPILER_GCC=y
-include $(LIBPAYLOAD_DIR)/libpayload.xcompile
+
+# Include libpayload's xcompile (toolchain definitions).
+# First try the installed copy, then fall back to the source-tree copy.
+LIBPAYLOAD_XCOMPILE := $(wildcard $(LIBPAYLOAD_DIR)/libpayload.xcompile)
+ifeq ($(LIBPAYLOAD_XCOMPILE),)
+LIBPAYLOAD_XCOMPILE := $(wildcard $(LIBPAYLOAD_DIR)/.xcompile)
 endif
-LIBPAYLOAD_DIR ?= ../libpayload/install/libpayload
+ifneq ($(LIBPAYLOAD_XCOMPILE),)
+include $(LIBPAYLOAD_XCOMPILE)
+endif
 LZMA := lzma
+
+# cbfstool: prefer coreboot's built version, fall back to util/cbfstool source build, then PATH
+CBFSTOOL_COREBOOT_BUILD := $(src)/../../../build/cbfstool
+CBFSTOOL_UTIL := $(src)/../../../util/cbfstool/cbfstool
+CBFSTOOL ?= $(if $(wildcard $(CBFSTOOL_COREBOOT_BUILD)),$(CBFSTOOL_COREBOOT_BUILD),\
+             $(if $(wildcard $(CBFSTOOL_UTIL)),$(CBFSTOOL_UTIL),cbfstool))
 
 ifeq ($(strip $(HAVE_DOTCONFIG)),)
 
@@ -125,8 +139,10 @@ STRIP ?= $(STRIP_$(toolchain))
 
 include $(src)/src/arch/$(ARCH_DIR)/build_vars
 
+VB_SOURCE := $(src)/../../../3rdparty/vboot_reference
+
 INCLUDES = -I$(obj) -I$(src)/src/ -I$(src)/src/arch/$(ARCH_DIR)/includes/ \
-	-I$(VB_SOURCE)/firmware/include
+	-I$(VB_SOURCE)/firmware/include -I$(LIBPAYLOAD_DIR)/include
 ABI_FLAGS := $(ARCH_ABI_FLAGS) -ffreestanding -fno-builtin \
 	-fno-stack-protector -fomit-frame-pointer
 LINK_FLAGS = $(ARCH_LINK_FLAGS) $(ABI_FLAGS) -fuse-ld=bfd \
@@ -145,14 +161,10 @@ all:
 	@echo
 	@echo  '  depthcharge_unified	- Build unified depthcharge (with no'
 	@echo  '  			  firmware selection, for use with EFS)'
-	@echo  '  depthcharge_ro_rw	- Build depthcharge RO and RW (with'
-	@echo  '  			  old trampoline and VbSelectFirmware)'
 	@echo  '  netboot_unified	- Build netboot binary'
 	@echo  '  fastboot_bin		- Build fastboot binary'
 	@echo  '  dev_unified		- Build unified developer binary (with'
 	@echo  '  			  (EFS) vboot, netboot and gdb)'
-	@echo  '  dev_ro_rw		- Build RO/RW developer binary (with
-	@echo  '			  (legacy) vboot, netboot and gdb)'
 	@echo  '  dts                   - Preprocess fmap.dts file'
 	@echo  '  clean			- Delete final output binaries'
 	@echo  '  distclean		- Delete whole build directory'
