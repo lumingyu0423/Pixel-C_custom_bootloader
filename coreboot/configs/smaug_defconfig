@@ -519,9 +519,9 @@ CONFIG_PAYLOAD_ELF=y
 # CONFIG_PAYLOAD_SEABIOS is not set
 # CONFIG_PAYLOAD_FILO is not set
 # CONFIG_PAYLOAD_TIANOCORE is not set
-CONFIG_PAYLOAD_FILE="payloads/external/depthcharge/build/depthcharge.bin"
-CONFIG_COMPRESSED_PAYLOAD_LZMA=y
 # CONFIG_PAYLOAD_DEPTHCHARGE is not set
+CONFIG_PAYLOAD_FILE="payloads/external/depthcharge/build/depthcharge.payload"
+# CONFIG_COMPRESSED_PAYLOAD_LZMA is not set
 # CONFIG_COMPRESSED_PAYLOAD_NRV2B is not set
 
 #
