@@ -23,7 +23,6 @@ At the moment, you must **disassemble the device** to access the debug interface
 The debug interface is a **50-pin header** located next to the mainboard **USB Type-C** connector. For connector/pinout background, see:
 
 - [Servo Micro (uServo) documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/servo_micro.md)
-- [Pixel C / smaug debug connector notes (Google Docs viewer)](https://docs.google.com/viewer?a=v&pid=sites&srcid=Y2hyb21pdW0ub3JnfGRldnxneDo2Njk1MGFiOTRkY2E5MGM5)
 
 ### SPI flash (servo header)
 
@@ -74,9 +73,16 @@ The debug interface is a **50-pin header** located next to the mainboard **USB T
     $ make defconfig
     $ make depthcharge_unified
 
+## build ec (Allow enable CCD.) 
+    $ cd ec/
+    $ export CROSS_COMPILE=~/gcc-arm-none-eabi-6-2017-q2-update/bin/arm-none-eabi-
+    $ export BOARD=ryu
+    $ make
+
 ## build coreboot
     $ cd coreboot/
     $ make smaug_defconfig
     $ make
 
-output -> only-ro_test_smaug.7132.295.0.bin
+- output -> only-ro_test_smaug.7132.295.0.bin
+

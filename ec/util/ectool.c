@@ -380,11 +380,13 @@ int cmd_s5(int argc, char *argv[])
 	p.flags = 0;
 
 	if (argc > 1) {
+		int val;
 		p.flags |= EC_GSV_SET;
-		if (!parse_bool(argv[1], &p.value)) {
+		if (!parse_bool(argv[1], &val)) {
 			fprintf(stderr, "invalid arg \"%s\"\n", argv[1]);
 			return -1;
 		}
+		p.value = val;
 	}
 
 	rv = ec_command(EC_CMD_GSV_PAUSE_IN_S5, 0,
@@ -6554,7 +6556,8 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case OPT_NAME:
-			strncpy(device_name, optarg, 40);
+			strncpy(device_name, optarg, sizeof(device_name) - 1);
+			device_name[sizeof(device_name) - 1] = '\0';
 			break;
 		}
 	}

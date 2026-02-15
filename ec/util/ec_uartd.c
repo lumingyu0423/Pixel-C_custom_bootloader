@@ -11,7 +11,7 @@
  */
 
 /* Force header files to define grantpt(), posix_openpt(), cfmakeraw() */
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE 600
 /* Force header file to declare ptsname_r(), etc. */
 #ifndef _GNU_SOURCE

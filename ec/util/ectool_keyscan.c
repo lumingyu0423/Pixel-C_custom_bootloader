@@ -203,7 +203,7 @@ static int keyscan_add_to_scan(struct keyscan_info *keyscan, char **keysp,
 
 	/* Convert keycode to key if needed */
 	if (keycode == -1) {
-		pos = strchr(kbd_plain_xlate, key);
+		pos = memchr(kbd_plain_xlate, key, sizeof(kbd_plain_xlate));
 		if (!pos) {
 			fprintf(stderr, "Key '%c' not found in xlate table\n",
 				key);

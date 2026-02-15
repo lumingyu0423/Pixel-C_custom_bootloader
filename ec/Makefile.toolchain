@@ -7,7 +7,7 @@
 #
 
 # Toolchain configuration
-HOST_CROSS_COMPILE ?= x86_64-pc-linux-gnu-
+HOST_CROSS_COMPILE ?= x86_64-linux-gnu-
 
 CC=$(CROSS_COMPILE)gcc
 CPP=$(CROSS_COMPILE)cpp

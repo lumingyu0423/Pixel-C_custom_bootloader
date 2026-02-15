@@ -114,7 +114,7 @@ GPIO(VDDSPI_EN_0,          PIN(C, 15), GPIO_OUT_LOW) /* on rev v0+ */
 GPIO(VDDSPI_EN_OLD,        PIN(C, 12), GPIO_OUT_LOW) /* on rev v6/7/8 */
 GPIO(EC_INT_L,             PIN(F, 2),  GPIO_ODR_HIGH)
 GPIO(ENTERING_RW,          PIN(E, 9),  GPIO_OUT_LOW)
-GPIO(WP_L,                 PIN(F, 6),  GPIO_INPUT)
+GPIO(WP_L,                 PIN(F, 6),  GPIO_INPUT) /* C11 */
 GPIO(FW_DEBUG_MODE_L,      PIN(D, 1),  GPIO_ODR_HIGH)
 GPIO(EC_BOOT_SPI_EN,       PIN(F, 4),  GPIO_ODR_HIGH)
 

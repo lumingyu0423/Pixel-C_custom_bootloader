@@ -728,7 +728,7 @@ void tcpc_init(int port)
 
 int tcpc_run(int port, int evt)
 {
-	int cc, i, res;
+	int cc, i, res = -1;
 
 	/* incoming packet ? */
 	if (pd_rx_started(port) && pd[port].rx_enabled) {

@@ -878,7 +878,7 @@ DECLARE_CONSOLE_COMMAND(reboot, command_reboot,
 
 static int command_system_lock(int argc, char **argv)
 {
-	force_locked = 1;
+	// force_locked = 1;
 	return EC_SUCCESS;
 }
 DECLARE_CONSOLE_COMMAND(syslock, command_system_lock,

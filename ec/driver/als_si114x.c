@@ -219,8 +219,8 @@ static int irq_handler(struct motion_sensor_t *s, uint32_t *event)
 /* Just trigger a measurement */
 static int read(const struct motion_sensor_t *s, vector_3_t v)
 {
-	int ret;
-	uint8_t cmd;
+	int ret = EC_ERROR_UNKNOWN;
+	uint8_t cmd = 0;
 	struct si114x_drv_data_t *data = SI114X_GET_DATA(s);
 
 	switch (data->state) {
