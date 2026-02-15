@@ -24,6 +24,8 @@
 #include <libpayload.h>
 #include <vboot_api.h>
 
+#include <cbfs.h>
+
 #include "drivers/ec/cros/ec.h"
 #include "drivers/flash/flash.h"
 #include "image/fmap.h"
@@ -136,24 +138,26 @@ VbError_t VbExEcGetExpectedRW(int devidx, enum VbSelectFirmware_t select,
 		name = (devidx == 0 ? "EC_MAIN_A" : "PD_MAIN_A");
 		break;
 	case VB_SELECT_FIRMWARE_B:
-		name = (devidx == 0 ? "EC_MAIN_B" : "PD_MAIN_B");
+		name = (devidx == 0 ? "EC_MAIN_A" : "PD_MAIN_A");
 		break;
 	default:
 		printf("Unrecognized EC firmware requested.\n");
 		return VBERROR_UNKNOWN;
 	}
 
-	FmapArea area;
-	if (fmap_find_area(name, &area)) {
-		printf("Didn't find section %s in the fmap.\n", name);
+	struct cbfs_file *file = cbfs_get_file(CBFS_DEFAULT_MEDIA, name);
+	if (file == NULL) {
+		printf("Didn't find EC firmware '%s' in CBFS.\n", name);
 		return VBERROR_UNKNOWN;
 	}
 
-	uint32_t size;
-	*image = index_subsection(&area, 0, &size);
-	*image_size = size;
-	if (!*image)
+	*image_size = ntohl(file->len);
+	*image = cbfs_get_file_content(CBFS_DEFAULT_MEDIA, name,
+				       CBFS_TYPE_RAW);
+	if (!*image) {
+		printf("Failed to load EC firmware '%s' from CBFS.\n", name);
 		return VBERROR_UNKNOWN;
+	}
 
 	printf("EC-RW firmware address, size are %p, %d.\n",
 		*image, *image_size);
@@ -208,37 +212,27 @@ VbError_t VbExEcGetExpectedRWHash(int devidx, enum VbSelectFirmware_t select,
 
 	switch (select) {
 	case VB_SELECT_FIRMWARE_A:
-		name = "FW_MAIN_A";
+		name = "EC_MAIN_A_HASH";
 		break;
 	case VB_SELECT_FIRMWARE_B:
-		name = "FW_MAIN_B";
+		name = "EC_MAIN_A_HASH";
 		break;
 	default:
 		printf("Unrecognized EC hash requested.\n");
 		return VBERROR_UNKNOWN;
 	}
 
-	FmapArea area;
-	if (fmap_find_area(name, &area)) {
-		printf("Didn't find section %s in the fmap.\n", name);
+	struct cbfs_file *file = cbfs_get_file(CBFS_DEFAULT_MEDIA, name);
+	if (file == NULL) {
+		printf("Didn't find EC hash '%s' in CBFS.\n", name);
 		return VBERROR_UNKNOWN;
 	}
 
-	uint32_t size;
-
-	/*
-	 * Assume the hash is subsection (devidx+1) in the main firmware.  This
-	 * is currently true (see for example, board/samus/fmap.dts), but
-	 * fragile as all heck.
-	 *
-	 * TODO(rspangler@chromium.org): More robust way of locating the hash.
-	 * Subsections should really have names/tags, not just indices.
-	 */
-	*hash = index_subsection(&area, devidx + 1, &size);
-	*hash_size = size;
+	*hash_size = ntohl(file->len);
+	*hash = cbfs_get_file_content(CBFS_DEFAULT_MEDIA, name,
+				      CBFS_TYPE_RAW);
 	if (!*hash) {
-		printf("Didn't find precalculated hash subsection %d.\n",
-		       devidx + 1);
+		printf("Failed to load EC hash '%s' from CBFS.\n", name);
 		return VBERROR_UNKNOWN;
 	}
 

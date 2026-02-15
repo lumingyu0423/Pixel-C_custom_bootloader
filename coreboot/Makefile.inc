@@ -503,6 +503,8 @@ ifeq ($(CONFIG_BOARD_GOOGLE_SMAUG),y)
 	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/arrow_up.bmp -n arrow_up.bmp -t raw
 	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/splash.bmp -n splash.bmp -t raw
 	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/u-boot.dtb -n u-boot.dtb -t mrc_cache
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/EC_MAIN_A_HASH -n EC_MAIN_A_HASH -t raw
+	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/EC_MAIN_A -n EC_MAIN_A -t raw
 endif
 	mv $@.tmp $@
 	@printf "    CBFSPRINT  $(subst $(obj)/,,$(@))\n\n"
