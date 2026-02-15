@@ -25,8 +25,8 @@
  * Total delay >= 30 seconds, <= 60 seconds.
  */
 #define REQUIRED_NOISE_TIME    1000
-#define REQUIRED_NOISE_WITHIN 22000
-#define REQUIRED_TOTAL_DELAY  30000
+#define REQUIRED_NOISE_WITHIN  3000
+#define REQUIRED_TOTAL_DELAY   5000
 #define MAX_CUSTOM_DELAY      60000
 
 /* These are visible externally only to make testing easier */
@@ -37,7 +37,7 @@ VbDevMusicNote default_notes_[] = { {20000, 0}, /* 20 seconds */
                                     {9250, 0} }; /* total 30 seconds */
 uint32_t default_count_ = sizeof(default_notes_) / sizeof(VbDevMusicNote);
 
-VbDevMusicNote short_notes_[] = { {2000, 0} }; /* two seconds */
+VbDevMusicNote short_notes_[] = { {2000, 0} }; /* two seconds, no MusicNote */
 uint32_t short_count_ = sizeof(short_notes_) / sizeof(VbDevMusicNote);
 
 /* No need to dynamically allocate this, is there? */

@@ -31,6 +31,9 @@
 #define FB_INFO_FOREGROUND 11
 #define FB_INFO_BACKGROUND 0
 
+#define FB_WARN_FOREGROUND	11
+#define FB_WARN_BACKGROUND	1
+
 static uint32_t current_screen = VB_SCREEN_BLANK;
 static char initialized = 0;
 
@@ -84,10 +87,12 @@ static VbError_t vboot_draw_developer_warning(uint32_t localize)
 		return rv;
 
 	video_console_set_cursor(0, FB_INFO_POSITION_ROW);
+	video_printf(FB_WARN_FOREGROUND, FB_WARN_BACKGROUND, 1,
+		     "Custom Bootloader!!!.\n");
 	video_printf(FB_INFO_FOREGROUND, FB_INFO_BACKGROUND, 1,
 		     "Bootloader is unlocked and OS verification is OFF.\n");
 	video_printf(FB_INFO_FOREGROUND, FB_INFO_BACKGROUND, 1,
-		     "Device will continue booting in 30 seconds.\n");
+		     "Device will continue booting in 5 seconds.\n");
 
 	/*
 	 * For smaug, we are using long press(> 2 seconds) to power-on the

@@ -50,6 +50,7 @@ void vbnv_write(uint32_t flag, uint32_t val)
 	VbExNvStorageRead(context.raw);
 	VbNvSetup(&context);
 
+	printf("vbnv_write(flag 0x%x, val 0x%x)\n", flag, val);
 	VbNvSet(&context, flag, val);
 
 	VbNvTeardown(&context);

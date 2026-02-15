@@ -187,6 +187,8 @@ static const struct {
 	void (*highlight)(void);	/* called when option is highlighted */
 	menu_mode_t mode;		/* mode to display this option */
 } opts[] = {
+	{"Boot into OS", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
+	 NULL, NULL, MENU_NORMAL | MENU_DEV },
 	{"Restart this device", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
 	 menu_restart, NULL, MENU_NORMAL | MENU_DEV },
 	{"Switch to fastboot mode", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
@@ -195,8 +197,8 @@ static const struct {
 	 menu_recovery, NULL, MENU_NORMAL | MENU_DEV },
 	{"Turn off this device", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
 	 menu_shutdown, NULL, MENU_NORMAL | MENU_DEV },
-	{"Switch to USB recovery", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
-	 NULL, NULL, MENU_NORMAL | MENU_DEV },
+	// {"Switch to USB recovery", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
+	 // NULL, NULL, MENU_NORMAL | MENU_DEV },
 };
 
 static void draw_option(int pos, int highlight)

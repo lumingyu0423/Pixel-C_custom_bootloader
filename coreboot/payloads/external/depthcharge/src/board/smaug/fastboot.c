@@ -416,7 +416,7 @@ fail:
 	return allow_unlock;
 }
 
-int board_write_protect(void)
+int board_write_protect(void) // fastboot oem Write-protect
 {
 	/*
 	 * status:
@@ -431,5 +431,6 @@ int board_write_protect(void)
 	 *
 	 * Status = 1011 0100 = 0xB4
 	 */
-	return flash_write_status(0xB4);
+	// return flash_write_status(0xB4);
+	return flash_write_status(0x0);
 }

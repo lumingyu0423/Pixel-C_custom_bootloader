@@ -24,6 +24,7 @@
 #include <libpayload.h>
 #include <vboot_struct.h>
 #include <vboot_api.h>
+#include <vboot_nvstorage.h>
 
 #include "arch/sign_of_life.h"
 #include "base/init_funcs.h"
@@ -37,6 +38,7 @@
 #include "vboot/util/commonparams.h"
 #include "vboot/util/flag.h"
 #include "vboot/util/vboot_handoff.h"
+#include "vboot/vbnv.h"
 
 static int vboot_init_handoff()
 {
@@ -102,6 +104,21 @@ int main(void)
 	if (run_init_funcs())
 		halt();
 
+	/*
+	 * Ensure fastboot capabilities are always enabled.
+	 * The bootblock (verstage) may have cleared these flags if the
+	 * device was not in developer mode. Since bootblock code cannot
+	 * be modified (signature-verified), we re-enable them here.
+	 */
+	if (!vbnv_read(VBNV_DEV_BOOT_FASTBOOT_FULL_CAP)) {
+		printf("Enabling VBNV_DEV_BOOT_FASTBOOT_FULL_CAP\n");
+		vbnv_write(VBNV_DEV_BOOT_FASTBOOT_FULL_CAP, 1);
+	}
+	if (!vbnv_read(VBNV_FASTBOOT_UNLOCK_IN_FW)) {
+		printf("Enabling VBNV_FASTBOOT_UNLOCK_IN_FW\n");
+		vbnv_write(VBNV_FASTBOOT_UNLOCK_IN_FW, 1);
+	}
+
 	timestamp_add_now(TS_RO_VB_INIT);
 
 	if (CONFIG_CLI)
@@ -110,6 +127,16 @@ int main(void)
 	// Set up the common param structure, not clearing shared data.
 	if (vboot_init_handoff())
 		halt();
+
+	VbSharedDataHeader *vdat;
+	int vdat_size;
+
+	if (find_common_params((void **)&vdat, &vdat_size) != 0)
+		vdat = NULL;
+
+	if (vdat != NULL)
+		printf("recovery reason:0x%X , this flag set by bootblock, clean it.\n" , vdat->recovery_reason);
+		vdat->recovery_reason = VBNV_RECOVERY_NOT_REQUESTED;
 
 	/* Fastboot is only entered in recovery path */
 	if (vboot_in_recovery())

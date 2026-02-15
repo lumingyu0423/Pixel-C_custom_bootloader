@@ -45,6 +45,7 @@
 #include "vboot/util/ec.h"
 #include "vboot/util/flag.h"
 #include "vboot/util/memory.h"
+#include "vboot/fastboot.h"
 #include "vboot/vbnv.h"
 
 static uint32_t vboot_out_flags;
@@ -230,10 +231,13 @@ int vboot_select_and_load_kernel(void)
 		/* Let the warning screen appear for some time. */
 		delay(5);
 
-		printf("Rebooting the EC to RO.\n");
-		reboot_ec_to_ro();
-		if (power_off())
-			return 1;
+		// printf("Rebooting the EC to RO.\n");
+		// reboot_ec_to_ro();
+		// if (power_off())
+			// return 1;
+		printf("Skip if EC firmware sync failed or not supported, entering fastboot.\n");
+		vboot_try_fastboot();
+
 	} else if (res == VBERROR_SHUTDOWN_REQUESTED) {
 		printf("Powering off.\n");
 		if (power_off())

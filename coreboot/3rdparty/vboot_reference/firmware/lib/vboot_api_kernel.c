@@ -757,9 +757,9 @@ VbError_t VbEcSoftwareSync(int devidx, VbCommonParams *cparams)
 		rw_hash = NULL;
 	} else if (rv) {
 		VBDEBUG(("VbEcSoftwareSync() - "
-			 "VbExEcGetExpectedRWHash() returned %d\n", rv));
-		VbSetRecoveryRequest(VBNV_RECOVERY_EC_EXPECTED_HASH);
-		return VBERROR_EC_REBOOT_TO_RO_REQUIRED;
+			 "VbExEcGetExpectedRWHash() returned %d, "
+			 "Skip if EC firmware not supported.\n", rv));
+		goto ec_protect_and_jump;
 	} else if (rw_hash_size != SHA256_DIGEST_SIZE) {
 		VBDEBUG(("VbEcSoftwareSync() - "
 			 "VbExEcGetExpectedRWHash() says size %d, not %d\n",
@@ -902,6 +902,7 @@ VbError_t VbEcSoftwareSync(int devidx, VbCommonParams *cparams)
 		 */
 	}
 
+ec_protect_and_jump:
 	/* Protect EC-RW flash */
 	rv = EcProtectRW(devidx);
 	if (rv != VBERROR_SUCCESS)
@@ -1090,7 +1091,7 @@ VbError_t VbSelectAndLoadKernel(VbCommonParams *cparams,
 		/* Recovery boot */
 		p.boot_flags |= BOOT_FLAG_RECOVERY;
 		retval = VbBootRecovery(cparams, &p);
-		VbExEcEnteringMode(0, VB_EC_RECOVERY);
+		// VbExEcEnteringMode(0, VB_EC_RECOVERY);
 		VbDisplayScreen(cparams, VB_SCREEN_BLANK, 0, &vnc);
 
 	} else if (p.boot_flags & BOOT_FLAG_DEVELOPER) {
