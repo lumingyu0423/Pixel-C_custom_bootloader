@@ -16,45 +16,67 @@ Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this rang
 
 Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this range is verified using a Google PKC public key signature！
 
+## How to Debug
+
+At the moment, you must **disassemble the device** to access the debug interface because **CCD is not enabled yet**.
+
+The debug interface is a **50-pin header** located next to the mainboard **USB Type-C** connector. For connector/pinout background, see:
+
+- [Servo Micro (uServo) documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/servo_micro.md)
+- [Pixel C / smaug debug connector notes (Google Docs viewer)](https://docs.google.com/viewer?a=v&pid=sites&srcid=Y2hyb21pdW0ub3JnfGRldnxneDo2Njk1MGFiOTRkY2E5MGM5)
+
+### SPI flash (servo header)
+
+- **1**: GND
+- **2**: CLK
+- **3**: CS
+- **4**: MOSI
+- **5**: MISO
+- **VCC**: connect to the SPI flash chip’s own VCC
+
+### AP UART  (servo header)
+
+- **RX**: pin **17**
+- **TX**: pin **16**
 
 # HOW TO MAKE
 ## Source URL
-coreboot -> https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/refs/heads/firmware-smaug-7900.B
+    coreboot -> https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/refs/heads/firmware-smaug-7900.B
 
-depthcharge -> https://chromium.googlesource.com/chromiumos/platform/depthcharge/+/refs/heads/firmware-smaug-7900.B
+    depthcharge -> https://chromium.googlesource.com/chromiumos/platform/depthcharge/+/refs/heads/firmware-smaug-7900.B
 
-arm-trusted-firmware -> https://chromium.googlesource.com/chromiumos/third_party/arm-trusted-firmware/+/refs/heads/firmware-smaug-7900.B
+    arm-trusted-firmware -> https://chromium.googlesource.com/chromiumos/third_party/arm-trusted-firmware/+/refs/heads/firmware-smaug-7900.B
 
-vboot_reference -> https://chromium.googlesource.com/chromiumos/platform/vboot_reference/+/refs/heads/firmware-smaug-7900.B
+    vboot_reference -> https://chromium.googlesource.com/chromiumos/platform/vboot_reference/+/refs/heads/firmware-smaug-7900.B
 
-ec -> https://chromium.googlesource.com/chromiumos/platform/ec/+/refs/heads/firmware-smaug-7900.B
+    ec -> https://chromium.googlesource.com/chromiumos/platform/ec/+/refs/heads/firmware-smaug-7900.B
 
 
 ## install Tegra BCT and bootable flash image generator/compiler
-sudo apt install cbootimage
+    $ sudo apt install cbootimage
 
 ## download toolchain
-cd coreboot/util/cbfstool/
-make 
+    $ cd coreboot/util/cbfstool/
+    $ make 
 
 ## build libpayload
-cd coreboot/payloads/libpayload/
-make defconfig
-make
+    $ cd coreboot/payloads/libpayload/
+    $ make defconfig
+    $ make
 
 ## build cbfstool
-cd coreboot/util/cbfstool/
-make cbfstool
+    $ cd coreboot/util/cbfstool/
+    $ make cbfstool
 
 ## build payload depthcharge
-cd coreboot/payloads/external/depthcharge
-export BOARD=smaug
-make defconfig
-make depthcharge_unified
+    $ cd coreboot/payloads/external/depthcharge
+    $ export BOARD=smaug
+    $ make defconfig
+    $ make depthcharge_unified
 
 ## build coreboot
-cd coreboot/
-make smaug_defconfig
-make
+    $ cd coreboot/
+    $ make smaug_defconfig
+    $ make
 
 output -> only-ro_test_smaug.7132.295.0.bin
