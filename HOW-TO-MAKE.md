@@ -18,7 +18,15 @@ Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this rang
 
 ## How to Debug
 
-At the moment, you must **disassemble the device** to access the debug interface because **CCD is not enabled yet**.
+- [SuzyQ documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/ccd.md#suzyq-suzyqable)
+
+~~At the moment, you must **disassemble the device** to access the debug interface because **CCD is not enabled yet**.~~
+
+After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (at least on my device; version: `RO, ryu_v1.8.205-f72390a 2015-10-07 09:31:14 @build169-m2`). This is a potential risk/unknown. The good news is that the **EC does not enforce firmware signature verification**, so it is possible to run a **custom EC firmware** (tested; support will be added later).
+
+In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested using an EC_RW image extracted from `bootloader-dragon-google_smaug.7900.139.0`).
+
+Also, the **WP_L pin is pulled high by default in hardware**, which means the EC is **unlocked by default**.
 
 The debug interface is a **50-pin header** located next to the mainboard **USB Type-C** connector. For connector/pinout background, see:
 
