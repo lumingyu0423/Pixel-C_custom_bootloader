@@ -62,6 +62,8 @@ cmd_mv_from_tmp = mv $(out)/$*.bin.tmp $(out)/$*.bin
 cmd_extractrw-y = dd if=$(out)/$(PROJECT).bin.tmp of=$(out)/$(PROJECT).RW.bin \
 	       bs=1 count=$(_rw_size) skip=$(_rw_off) $(silent_err)
 cmd_copyrw-y = cd $(out) && cp $(PROJECT).RW.flat $(PROJECT).RW.bin
+cmd_copyro-y = cd $(out) && cp $(PROJECT).RO.flat $(PROJECT).RO.bin
+cmd_rohash = sha256sum $(out)/$(PROJECT).RO.bin | cut -d ' ' -f 1 | xxd -r -p > $(out)/$(PROJECT).RO.hash.bin
 cmd_rwhash = sha256sum $(out)/$(PROJECT).RW.bin | cut -d ' ' -f 1 | xxd -r -p > $(out)/$(PROJECT).RW.hash.bin
 
 # commands for RSA signature
@@ -159,7 +161,9 @@ $(out)/%.bin: $(out)/%.obj
 	$(if $(wildcard $(PEM)),$(call quiet,rsasign,SIGN   ),)
 	$(if $(wildcard $(PEM)),$(call quiet,extractrw-y,EXTR_RW), \
 			$(call quiet,copyrw-y,COPY_RW))
+	$(call quiet,copyro-y,COPY_RO)
 	$(call quiet,mv_from_tmp,MV     )
+	$(call quiet,rohash,HASH   )
 	$(call quiet,rwhash,HASH   )
 
 flat-y = $(out)/$(PROJECT).RW.flat
