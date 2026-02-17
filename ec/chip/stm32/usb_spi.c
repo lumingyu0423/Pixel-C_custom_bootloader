@@ -161,6 +161,7 @@ int usb_spi_interface(struct usb_spi_config const *config,
 
 	switch (setup.bRequest) {
 	case USB_SPI_REQ_ENABLE:
+	case 0x0002: /* ENABLE_AP */
 		config->state->enabled_host = 1;
 		break;
 

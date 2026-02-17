@@ -28,6 +28,10 @@ In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested usin
 
 Also, the **WP_L pin is pulled high by default in hardware**, which means the EC is **unlocked by default**.
 
+Read firmware from spiflash.
+
+    $ sudo flashrom -p raiden_debug_spi -r backupfirmware.rom
+
 The debug interface is a **50-pin header** located next to the mainboard **USB Type-C** connector. For connector/pinout background, see:
 
 - [Servo Micro (uServo) documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/servo_micro.md)
