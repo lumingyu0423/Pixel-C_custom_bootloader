@@ -22,7 +22,7 @@ Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this rang
 
 ~~At the moment, you must **disassemble the device** to access the debug interface because **CCD is not enabled yet**.~~
 
-After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (at least on my device; version: `RO, ryu_v1.8.205-f72390a 2015-10-07 09:31:14 @build169-m2`). This is a potential risk/unknown. The good news is that the **EC does not enforce firmware signature verification**, so it is possible to run a **custom EC firmware** (tested; support will be added later).
+After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (From factory firmware, EC-RO never updates, at least on my device; version: `RO, ryu_v1.8.205-f72390a 2015-10-07 09:31:14 @build169-m2`). This is a potential risk/unknown. The good news is that the **EC does not enforce firmware signature verification**, so it is possible to run a **custom EC firmware** ~~(tested; support will be added later)~~ (Now EC-RO firmware can be updated through the fastboot menu).
 
 In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested using an EC_RW image extracted from `bootloader-dragon-google_smaug.7900.139.0`).
 
