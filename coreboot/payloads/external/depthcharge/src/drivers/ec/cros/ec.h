@@ -228,6 +228,25 @@ int cros_ec_test(void);
  */
 int cros_ec_flash_update_rw(int devidx, const uint8_t *image, int image_size);
 
+/**
+ * Update the EC RO copy.
+ *
+ * @param devidx	Index of target device
+ * @param image		the content to write
+ * @param image_size	content length
+ * @return 0 if ok, <0 on error
+ */
+int cros_ec_flash_update_ro(int devidx, const uint8_t *image, int image_size);
+
+/**
+ * Read the hash of the ChromeOS EC RO firmware.
+ *
+ * @param devidx	Index of target device
+ * @param hash		Destination for hash information
+ * @return 0 if ok, <0 on error
+ */
+int cros_ec_read_hash_ro(int devidx, struct ec_response_vboot_hash *hash);
+
 /* Internal interfaces */
 
 /**

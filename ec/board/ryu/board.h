@@ -25,7 +25,7 @@
  #define CONFIG_SYSTEM_UNLOCKED
 
 /* Optional features */
-#undef CONFIG_CMD_HASH
+#define CONFIG_CMD_HASH
 #define CONFIG_CMD_FLASH
 #define CONFIG_BOARD_VERSION
 #define CONFIG_BOARD_SPECIFIC_VERSION

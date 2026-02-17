@@ -185,13 +185,13 @@ search_toolchain() {
 	echo "# $architecture TARCH_SEARCH=$search"
 
 	# Search toolchain by checking assembler capability.
-	for TBFDARCH in $TBFDARCHS; do
+        for TBFDARCH in $TBFDARCHS; do
 		for gccprefixes in $search ""; do
 			program_exists "${gccprefixes}as" || continue
 			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "" && break
 			testas "$gccprefixes" "$TWIDTH" "$TBFDARCH" "TRUE" && break
 		done
-		[ "$GCCPREFIX" = "invalid" ] || break
+                [ "$GCCPREFIX" = "invalid" ] || break
 	done
 }
 
@@ -236,7 +236,7 @@ for architecture in $SUPPORTED_ARCHITECTURE; do
 	report_arch_toolchain
 done
 
-IASL=iasl
+	IASL=iasl
 
 if program_exists gcc; then
 	HOSTCC=gcc

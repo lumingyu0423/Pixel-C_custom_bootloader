@@ -27,6 +27,8 @@
 #include <vboot_struct.h>
 #include <cbfs.h>
 
+#include <vboot_api.h>
+
 #include "config.h"
 #include "boot/bcb.h"
 #include "drivers/ec/cros/commands.h"
@@ -170,6 +172,92 @@ static void menu_recovery(void)
 	menu_restart();
 }
 
+/* Declared in vboot/callbacks/ec.c */
+extern VbError_t VbExEcUpdateRO(int devidx);
+
+static void menu_update_ec_ro(void)
+{
+	unsigned int rows, cols;
+	const char *confirm_str;
+	const char *cancel_str;
+
+	/* Draw confirmation screen */
+	vboot_draw_screen(VB_SCREEN_FASTBOOT_MODE, 0, 1);
+	video_get_rows_cols(&rows, &cols);
+	video_console_set_cursor(0, rows / 2 - 3);
+
+	video_printf(FB_MESSAGE_WARN_FG, FB_MESSAGE_WARN_BG, 1,
+		     "Update EC-RO firmware?\n\n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "WARNING: Updating EC RO is extremely dangerous!         \n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "A bad flash may permanently brick the EC.               \n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "Make sure you have a way to recover the EC before       \n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "proceeding (e.g. STM DFU programmer).                 \n\n");
+
+	confirm_str = board_get_button_string(FB_BUTTON_CONFIRM);
+	cancel_str = board_get_button_string(FB_BUTTON_CANCEL);
+	video_printf(FB_MESSAGE_WARN_FG, FB_MESSAGE_WARN_BG, 1,
+		     "Press the %s to CONFIRM. Press the %s to CANCEL.\n",
+		     confirm_str, cancel_str);
+
+	printf("\n*** WARNING: Updating EC RO is extremely dangerous! ***\n");
+	printf("*** A bad flash may permanently brick the EC.       ***\n");
+
+	fb_button_type btn = board_getchar(FB_BUTTON_CONFIRM |
+					   FB_BUTTON_CANCEL);
+	if (btn != FB_BUTTON_CONFIRM) {
+		printf("EC RO update cancelled by user.\n");
+		/* Return to fastboot menu */
+		vboot_draw_screen(VB_SCREEN_FASTBOOT_MENU, 0, 1);
+		return;
+	}
+
+	/* Draw "updating in progress" screen */
+	vboot_draw_screen(VB_SCREEN_FASTBOOT_MODE, 0, 1);
+	video_console_set_cursor(0, rows / 2 - 1);
+	video_printf(FB_MESSAGE_WARN_FG, FB_MESSAGE_WARN_BG, 1,
+		     "Updating EC-RO firmware...\n\n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "Do NOT power off or unplug the device!\n");
+	video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+		     "This may take a few minutes. Please wait.\n");
+
+	printf("User confirmed. Starting EC RO update...\n");
+	VbError_t ret = VbExEcUpdateRO(0);
+
+	if (ret == VBERROR_SUCCESS) {
+		/* Draw success screen */
+		vboot_draw_screen(VB_SCREEN_FASTBOOT_MODE, 0, 1);
+		video_console_set_cursor(0, rows / 2 - 1);
+		video_printf(FB_MENU_FOREGROUND, FB_MENU_BACKGROUND, 1,
+			     "EC-RO firmware update succeeded!\n\n");
+		video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+			     "Device will reboot now to apply new EC-RO.\n");
+
+		printf("EC RO update succeeded! Rebooting...\n");
+		mdelay(2000);
+		cold_reboot();
+	} else {
+		/* Draw failure screen */
+		vboot_draw_screen(VB_SCREEN_FASTBOOT_MODE, 0, 1);
+		video_console_set_cursor(0, rows / 2 - 1);
+		video_printf(12, FB_MESSAGE_NORM_BG, 1,
+			     "EC-RO firmware update FAILED! (err=%d)\n\n", ret);
+		video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+			     "Device may need recovery.\n");
+		video_printf(FB_MESSAGE_NORM_FG, FB_MESSAGE_NORM_BG, 1,
+			     "Press any button to return to menu.\n");
+
+		printf("EC RO update FAILED (err=%d)!\n", ret);
+		board_getchar(FB_BUTTON_CONFIRM | FB_BUTTON_CANCEL |
+			      FB_BUTTON_UP | FB_BUTTON_DOWN |
+			      FB_BUTTON_SELECT);
+	}
+}
+
 typedef enum {
 	MENU_NONE = 0,
 	MENU_NORMAL = (1 << 0),
@@ -187,8 +275,6 @@ static const struct {
 	void (*highlight)(void);	/* called when option is highlighted */
 	menu_mode_t mode;		/* mode to display this option */
 } opts[] = {
-	{"Boot into OS", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
-	 NULL, NULL, MENU_NORMAL | MENU_DEV },
 	{"Restart this device", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
 	 menu_restart, NULL, MENU_NORMAL | MENU_DEV },
 	{"Switch to fastboot mode", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
@@ -197,8 +283,10 @@ static const struct {
 	 menu_recovery, NULL, MENU_NORMAL | MENU_DEV },
 	{"Turn off this device", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
 	 menu_shutdown, NULL, MENU_NORMAL | MENU_DEV },
-	// {"Switch to USB recovery", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
-	 // NULL, NULL, MENU_NORMAL | MENU_DEV },
+	{"Update EC-RO firmware", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
+	 menu_update_ec_ro, NULL, MENU_NORMAL | MENU_DEV },
+	{"Switch to USB recovery", FB_MENU_FOREGROUND, FB_MENU_BACKGROUND,
+	 NULL, NULL, MENU_NORMAL | MENU_DEV },
 };
 
 static void draw_option(int pos, int highlight)

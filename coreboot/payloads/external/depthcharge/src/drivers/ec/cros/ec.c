@@ -908,6 +908,92 @@ int cros_ec_flash_update_rw(int devidx, const uint8_t *image, int image_size)
 	return 0;
 }
 
+int cros_ec_flash_update_ro(int devidx, const uint8_t *image, int image_size)
+{
+	uint32_t ro_offset, ro_size;
+	int ret;
+
+	if (cros_ec_flash_offset(devidx, EC_FLASH_REGION_RO,
+				 &ro_offset, &ro_size))
+		return -1;
+	if (image_size > ro_size) {
+		printf("EC RO image too large: %d > %u\n",
+		       image_size, ro_size);
+		return -1;
+	}
+
+	/* Erase the entire RO section */
+	ret = cros_ec_flash_erase(devidx, ro_offset, ro_size);
+	if (ret) {
+		printf("Failed to erase EC RO flash.\n");
+		return ret;
+	}
+
+	/* Write the image */
+	ret = cros_ec_flash_write(devidx, image, ro_offset, image_size);
+	if (ret) {
+		printf("Failed to write EC RO flash.\n");
+		return ret;
+	}
+
+	return 0;
+}
+
+int cros_ec_read_hash_ro(int devidx, struct ec_response_vboot_hash *hash)
+{
+	struct ec_params_vboot_hash p;
+	uint64_t start;
+	int recalc_requested = 0;
+
+	start = timer_us(0);
+	do {
+		/* Get hash if available. */
+		p.cmd = EC_VBOOT_HASH_GET;
+		if (ec_command(EC_CMD_PASSTHRU_OFFSET(devidx) +
+			       EC_CMD_VBOOT_HASH, 0, &p, sizeof(p),
+			       hash, sizeof(*hash)) < 0)
+			return -1;
+
+		switch (hash->status) {
+		case EC_VBOOT_HASH_STATUS_NONE:
+			if (recalc_requested != 0)
+				break;
+			printf("%s: No valid hash (status=%d size=%d). "
+			       "Compute one...\n", __func__, hash->status,
+			       hash->size);
+
+			p.cmd = EC_VBOOT_HASH_START;
+			p.hash_type = EC_VBOOT_HASH_TYPE_SHA256;
+			p.nonce_size = 0;
+			p.offset = EC_VBOOT_HASH_OFFSET_RO;
+
+			if (ec_command(EC_CMD_PASSTHRU_OFFSET(devidx) +
+				       EC_CMD_VBOOT_HASH, 0, &p,
+				       sizeof(p), hash, sizeof(*hash)) < 0)
+				return -1;
+
+			recalc_requested = 1;
+			hash->status = EC_VBOOT_HASH_STATUS_BUSY;
+			break;
+		case EC_VBOOT_HASH_STATUS_BUSY:
+			mdelay(CROS_EC_HASH_CHECK_DELAY_MS);
+			break;
+		case EC_VBOOT_HASH_STATUS_DONE:
+		default:
+			break;
+		}
+	} while (hash->status == EC_VBOOT_HASH_STATUS_BUSY &&
+		 timer_us(start) < CROS_EC_HASH_TIMEOUT_MS * 1000);
+
+	if (hash->status != EC_VBOOT_HASH_STATUS_DONE) {
+		printf("%s: Hash status not done: %d\n", __func__,
+		       hash->status);
+		return -1;
+	}
+
+	return 0;
+}
+
 int cros_ec_read_vbnvcontext(uint8_t *block)
 {
 	struct ec_params_vbnvcontext p;

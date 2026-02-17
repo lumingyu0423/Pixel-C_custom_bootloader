@@ -106,10 +106,10 @@ detect_special_flags() {
 		CFLAGS="$CFLAGS -Wl,--build-id=none"
 
 	case "$architecture" in
-	arm )
+		arm )
 		;;
 	arm64 )
-		;;
+			;;
 	esac
 }
 
@@ -245,7 +245,7 @@ for architecture in $SUPPORTED_ARCHITECTURE; do
 	report_arch_toolchain
 done
 
-IASL=iasl
+	IASL=iasl
 
 if program_exists gcc; then
 	HOSTCC=gcc

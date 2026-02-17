@@ -505,6 +505,8 @@ ifeq ($(CONFIG_BOARD_GOOGLE_SMAUG),y)
 	$(CBFSTOOL) $@.tmp add -f 3rdparty/mainboard/google/smaug/u-boot.dtb -n u-boot.dtb -t mrc_cache
 	$(CBFSTOOL) $@.tmp add -f $(if $(wildcard ../ec/build/ryu/ec.RW.hash.bin),../ec/build/ryu/ec.RW.hash.bin,3rdparty/mainboard/google/smaug/EC_MAIN_A_HASH) -n EC_MAIN_A_HASH -t raw
 	$(CBFSTOOL) $@.tmp add -f $(if $(wildcard ../ec/build/ryu/ec.RW.bin),../ec/build/ryu/ec.RW.bin,3rdparty/mainboard/google/smaug/EC_MAIN_A) -n EC_MAIN_A -t raw
+	$(CBFSTOOL) $@.tmp add -f $(if $(wildcard ../ec/build/ryu/ec.RO.hash.bin),../ec/build/ryu/ec.RO.hash.bin,3rdparty/mainboard/google/smaug/EC_RO_HASH) -n EC_RO_HASH -t raw
+	$(CBFSTOOL) $@.tmp add -f $(if $(wildcard ../ec/build/ryu/ec.RO.bin),../ec/build/ryu/ec.RO.bin,3rdparty/mainboard/google/smaug/EC_RO) -n EC_RO -t raw
 endif
 	mv $@.tmp $@
 	@printf "    CBFSPRINT  $(subst $(obj)/,,$(@))\n\n"
