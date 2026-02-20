@@ -16,7 +16,7 @@ Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this rang
 
 Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this range is verified using a Google PKC public key signature！
 
-## How to Debug
+# How to Debug
 
 - [SuzyQ documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/ccd.md#suzyq-suzyqable)
 
@@ -28,15 +28,20 @@ In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested usin
 
 Also, the **WP_L pin is pulled high by default in hardware**, which means the EC is **unlocked by default**.
 
+Before using CCD to flash spiflash, **please read spiflash first**. Spiflash 0x3f0600 size 0x1000 contains the device's serial number, camera calibration parameters, EKS key.
+
 Read firmware from spiflash.
 
     $ sudo flashrom -p raiden_debug_spi -r backupfirmware.rom
+
+
+---
 
 The debug interface is a **50-pin header** located next to the mainboard **USB Type-C** connector. For connector/pinout background, see:
 
 - [Servo Micro (uServo) documentation](https://chromium.googlesource.com/chromiumos/third_party/hdctools/+/main/docs/servo_micro.md)
 
-### SPI flash (servo header)
+## SPI flash (servo header)
 
 - **1**: GND
 - **2**: CLK
@@ -45,10 +50,14 @@ The debug interface is a **50-pin header** located next to the mainboard **USB T
 - **5**: MISO
 - **VCC**: connect to the SPI flash chip’s own VCC
 
-### AP UART  (servo header)
+## AP UART  (servo header)
 
 - **RX**: pin **17**
 - **TX**: pin **16**
+
+## Unbrick the EC
+
+  [Use STM32CubeProgrammer to flash EC](docs/Unbrick%20the%20EC.md)
 
 # HOW TO MAKE
 ## Source URL
