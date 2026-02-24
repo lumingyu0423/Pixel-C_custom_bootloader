@@ -26,7 +26,7 @@ After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (From 
 
 In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested using an EC_RW image extracted from `bootloader-dragon-google_smaug.7900.139.0`).
 
-Also, the **WP_L pin is pulled high by default in hardware**, which means the EC is **unlocked by default**.
+**Note** that the [WP_L pin](docs/WP_L%20pin.png) is pulled down by the front camera FPC cable, and you need to disassemble the device to remove the front camera FPC or shield the pin8 pin9 on the FPC to unlock the CCD.
 
 Before using CCD to flash spiflash, **please read spiflash first**. Spiflash 0x3f0600 size 0x1000 contains the device's serial number, camera calibration parameters, EKS key.
 
