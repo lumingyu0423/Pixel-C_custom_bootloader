@@ -22,11 +22,11 @@ Never attempt to modify the SPI flash region at `0x0-0x19000`. Code in this rang
 
 ~~At the moment, you must **disassemble the device** to access the debug interface because **CCD is not enabled yet**.~~
 
-After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (From factory firmware, EC-RO never updates, at least on my device; version: `RO, ryu_v1.8.205-f72390a 2015-10-07 09:31:14 @build169-m2`). This is a potential risk/unknown. The good news is that the **EC does not enforce firmware signature verification**, so it is possible to run a **custom EC firmware** ~~(tested; support will be added later)~~ (Now EC-RO firmware can be updated through the fastboot menu).
+After investigation, **CCD(Suzy-Q) is not usable during the EC_RO stage** (From factory firmware, EC-RO never updates, at least on my device; version: `RO, ryu_v1.8.205-f72390a 2015-10-07 09:31:14 @build169-m2`). This is a potential risk/unknown. The good news is that the **EC does not enforce firmware signature verification**, so it is possible to run a **custom EC firmware**. (Now EC_RO firmware can be updated through the fastboot menu. **update EC_RO firmware need unlock the EC_RO write protection first.**).
+
+**Unlock the EC_RO write protection** need pull up the WP_L pin. On Pixel C the WP_L pin is pulled down by the [front camera FPC cable](docs/WP_L%20pin.png), and you need to disassemble the device to remove the front camera FPC or [remove this resistor](docs/Remove%20this%20resistor.png) to unlock the EC_RO write protection.
 
 In the **EC_RW stage**, CCD(Suzy-Q) can enumerate a device over USB (tested using an EC_RW image extracted from `bootloader-dragon-google_smaug.7900.139.0`).
-
-**Note** that the [WP_L pin](docs/WP_L%20pin.png) is pulled down by the front camera FPC cable, and you need to disassemble the device to remove the front camera FPC or shield the pin8 pin9 on the FPC to unlock the CCD.
 
 Before using CCD to flash spiflash, **please read spiflash first**. Spiflash 0x3f0600 size 0x1000 contains the device's serial number, camera calibration parameters, EKS key.
 
