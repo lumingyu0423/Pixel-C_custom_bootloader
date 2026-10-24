@@ -83,7 +83,7 @@ extern char _start[], _end[];
 /* XLAT Table Init Attributes */
 
 #define VA_START                   0x0
-#define BITS_PER_VA                33
+#define BITS_PER_VA                39
 #define MIN_64_BIT_ADDR            (1UL << 32)
 /* Granule size of 4KB is being used */
 #define GRANULE_SIZE_SHIFT         12
